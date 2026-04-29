@@ -1,142 +1,337 @@
-.page {
-  --background: #fafafa;
-  --foreground: #fff;
-
-  --text-primary: #000;
-  --text-secondary: #666;
-
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-  --button-secondary-border: #ebebeb;
-
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-geist-sans);
-  background-color: var(--background);
-}
-
-.main {
-  display: flex;
-  flex: 1;
+.landing {
+  position: relative;
+  min-height: 100vh;
   width: 100%;
-  max-width: 800px;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  background-color: var(--foreground);
-  padding: 120px 60px;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 20px;
+  align-items: start;
+  padding-block: 0;
+  padding-inline: 40px;
+  overflow: hidden;
 }
 
-.intro {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  gap: 24px;
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.intro h1 {
-  max-width: 320px;
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.headlineBlock {
+  position: relative;
+  z-index: 1;
+  grid-column: 2 / 12;
+  align-self: start;
+  width: fit-content;
+  margin-top: calc(50vh - 40px);
+}
+
+.ctaBlock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 80px;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 20px;
+  padding-block: 0;
+  padding-inline: 40px;
+}
+
+.ctaInner {
+  grid-column: 2 / 12;
+  position: relative;
+  width: 100%;
+}
+
+.headline {
+  color: #fff;
   font-size: 40px;
   font-weight: 600;
-  line-height: 48px;
-  letter-spacing: -2.4px;
-  text-wrap: balance;
-  color: var(--text-primary);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-align: left;
+  white-space: nowrap;
 }
 
-.intro p {
-  max-width: 440px;
-  font-size: 18px;
-  line-height: 32px;
-  text-wrap: balance;
-  color: var(--text-secondary);
+.blinkingDot {
+  animation: blink 1.4s ease-in-out infinite;
 }
 
-.intro a {
-  font-weight: 500;
-  color: var(--text-primary);
+.typed {
+  white-space: pre-wrap;
 }
 
-.ctas {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  max-width: 440px;
-  gap: 16px;
-  font-size: 14px;
-}
-
-.ctas a {
-  display: flex;
-  justify-content: center;
+.inlineCta {
+  position: relative;
+  display: inline-flex;
   align-items: center;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 128px;
-  border: 1px solid transparent;
-  transition: 0.2s;
+  gap: 6px;
+  color: #fff;
+  font-size: 10pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
   cursor: pointer;
-  width: fit-content;
-  font-weight: 500;
 }
 
-a.primary {
-  background: var(--text-primary);
-  color: var(--background);
-  gap: 8px;
+.inlineCta::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -12px;
+  height: 1px;
+  background: #fff;
+  transform: scaleX(0);
+  transform-origin: left center;
+  opacity: 0;
+  transition: transform 220ms ease, opacity 220ms ease;
 }
 
-a.secondary {
-  border-color: var(--button-secondary-border);
+.inlineCta:hover::after {
+  transform: scaleX(1);
+  opacity: 1;
 }
 
-/* Enable hover only on non-touch devices */
-@media (hover: hover) and (pointer: fine) {
-  a.primary:hover {
-    background: var(--button-primary-hover);
-    border-color: transparent;
-  }
+.signupForm {
+  position: absolute;
+  top: calc(100% + 16px);
+  left: 0;
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) minmax(180px, 2fr) minmax(
+      180px,
+      2fr
+    ) auto;
+  column-gap: 8px;
+  align-items: end;
+  display: none;
+}
 
-  a.secondary:hover {
-    background: var(--button-secondary-hover);
-    border-color: transparent;
+.signupFormOpen {
+  display: grid;
+}
+
+.field {
+  display: block;
+}
+
+.field input,
+.field select {
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  height: 36px;
+  padding: 0 10px;
+  outline: none;
+  font-size: 10pt;
+  font-weight: 700;
+  font-family: inherit;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+.field input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 10pt;
+  font-weight: 700;
+  font-family: inherit;
+}
+
+.selectPlaceholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.selectFilled {
+  color: #fff;
+}
+
+.field select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 30px;
+  background-image: linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.9) 50%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) calc(50% - 2px),
+    calc(100% - 11px) calc(50% - 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.field input[name="first_name"],
+.field input[name="last_name"] {
+  width: 100%;
+  max-width: 200px;
+}
+
+.field input[name="email"],
+.field select[name="role"] {
+  width: 100%;
+  max-width: 400px;
+}
+
+.fieldShort {
+  grid-column: span 1;
+}
+
+.fieldLong {
+  grid-column: span 1;
+}
+
+.submitButtonFull {
+  grid-column: span 1;
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: #fff;
+  background: rgba(18, 18, 18, 0.4);
+}
+
+.field select option {
+  color: #111;
+}
+
+.submitButton {
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 10pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  cursor: pointer;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 4px;
+  font-family: inherit;
+  transition: background-color 180ms ease, border-color 180ms ease;
+}
+
+.submitButton:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #fff;
+}
+
+.formStatus {
+  position: absolute;
+  top: calc(100% + 72px);
+  left: 0;
+  color: #fff;
+  font-size: 13px;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
   }
 }
 
-@media (max-width: 600px) {
-  .main {
-    padding: 48px 24px;
+@media (max-width: 900px) {
+  .landing {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    column-gap: 8px;
+    padding-inline: 24px;
   }
 
-  .intro {
-    gap: 16px;
+  .headline {
+    font-size: 40px;
+    white-space: nowrap;
+    text-align: left;
   }
 
-  .intro h1 {
-    font-size: 32px;
-    line-height: 40px;
-    letter-spacing: -1.92px;
+  .headlineBlock {
+    grid-column: 1 / span 8;
+    margin-top: calc(50vh - 40px);
+  }
+
+  .ctaBlock {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    column-gap: 8px;
+    padding-inline: 24px;
+    bottom: 80px;
+  }
+
+  .ctaInner {
+    grid-column: 1 / span 8;
+    width: 100%;
+  }
+
+  .signupForm {
+    width: min(520px, calc(100vw - 48px));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 8px;
+    row-gap: 8px;
+    top: calc(100% + 12px);
+  }
+
+  .field input[name="first_name"],
+  .field input[name="last_name"],
+  .field input[name="email"],
+  .field select[name="role"] {
+    width: 100%;
+  }
+
+  .fieldShort {
+    grid-column: span 1;
+  }
+
+  .fieldLong,
+  .submitButtonFull {
+    grid-column: 1 / span 2;
+  }
+
+  .submitButton {
+    justify-self: start;
+    padding-top: 8px;
+  }
+
+  .formStatus {
+    top: calc(100% + 300px);
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .logo {
-    filter: invert();
+@media (max-width: 1200px) and (min-width: 901px) {
+  .signupForm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 8px;
   }
 
-  .page {
-    --background: #000;
-    --foreground: #000;
+  .field input[name="first_name"],
+  .field input[name="last_name"],
+  .field input[name="email"],
+  .field select[name="role"] {
+    max-width: none;
+  }
 
-    --text-primary: #ededed;
-    --text-secondary: #999;
-
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-    --button-secondary-border: #1a1a1a;
+  .fieldShort,
+  .fieldLong,
+  .submitButtonFull {
+    grid-column: span 1;
   }
 }
