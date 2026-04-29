@@ -4,6 +4,7 @@
   width: 100%;
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: auto 1fr;
   column-gap: 20px;
   align-items: start;
   padding-block: 0;
@@ -11,17 +12,24 @@
   overflow: hidden;
 }
 
-.video {
+.heroBackgroundWrap {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+}
+
+.heroBackground {
   object-fit: cover;
 }
 
 .overlay {
   position: absolute;
   inset: 0;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
   background: rgba(0, 0, 0, 0.38);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -31,26 +39,27 @@
   position: relative;
   z-index: 1;
   grid-column: 2 / 12;
+  grid-row: 1;
   align-self: start;
   width: fit-content;
-  margin-top: calc(50vh - 40px);
+  margin-top: calc(50vh - 20px);
 }
 
+/* Vertically centers REQUEST CTA in the space below the headline down to the viewport bottom */
 .ctaBlock {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 80px;
+  position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: 20px;
-  padding-block: 0;
-  padding-inline: 40px;
+  grid-column: 2 / 12;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  align-self: stretch;
+  min-height: 0;
 }
 
 .ctaInner {
-  grid-column: 2 / 12;
   position: relative;
   width: 100%;
 }
@@ -89,6 +98,18 @@
   border: 0;
   padding: 0;
   cursor: pointer;
+}
+
+.inlineCtaText,
+.ctaArrow {
+  font-size: 10pt;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.ctaArrow {
+  transform: translateY(-2px);
 }
 
 .inlineCta::after {
@@ -255,6 +276,7 @@
 @media (max-width: 900px) {
   .landing {
     grid-template-columns: repeat(8, minmax(0, 1fr));
+    grid-template-rows: auto 1fr;
     column-gap: 8px;
     padding-inline: 24px;
   }
@@ -267,18 +289,16 @@
 
   .headlineBlock {
     grid-column: 1 / span 8;
-    margin-top: calc(50vh - 40px);
+    grid-row: 1;
+    margin-top: calc(50vh - 20px);
   }
 
   .ctaBlock {
-    grid-template-columns: repeat(8, minmax(0, 1fr));
-    column-gap: 8px;
-    padding-inline: 24px;
-    bottom: 80px;
+    grid-column: 1 / span 8;
+    grid-row: 2;
   }
 
   .ctaInner {
-    grid-column: 1 / span 8;
     width: 100%;
   }
 
