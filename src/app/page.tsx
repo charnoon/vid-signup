@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import Image from "next/image";
 
 import styles from "./page.module.css";
 import type { SignupResponse } from "@/lib/validation";
@@ -136,29 +135,33 @@ export default function Home() {
   return (
     <main className={styles.landing}>
       <div className={styles.heroBackgroundWrap}>
-        <Image
-          className={styles.heroBackground}
-          src="/preview.png"
-          alt=""
-          fill
-          sizes="100vw"
-          priority
-          draggable={false}
+        <video
+          className={styles.heroVideo}
           aria-hidden
-        />
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/preview.png"
+          preload="metadata"
+        >
+          <source src="/vid-hero-desktop.mp4" type="video/mp4" />
+        </video>
+        <div className={styles.heroVignette} aria-hidden />
       </div>
 
       <div className={styles.overlay} />
 
-      <div className={styles.headlineBlock}>
-        <h1 className={styles.headline}>
-          <span>Vid</span>
-          <span className={styles.blinkingDot}>.</span>
-          <span className={styles.typed}>{typedText}</span>
-        </h1>
-      </div>
+      <div className={styles.heroRow}>
+        <div className={styles.headlineBlock}>
+          <h1 className={styles.headline}>
+            <span>Vid</span>
+            <span className={styles.blinkingDot}>.</span>
+            <span className={styles.typed}>{typedText}</span>
+          </h1>
+        </div>
 
-      <div className={styles.ctaBlock}>
+        <div className={styles.ctaBlock}>
         <div className={styles.ctaInner}>
         {hasIntroCompleted ? (
           <button
@@ -166,7 +169,14 @@ export default function Home() {
             className={styles.inlineCta}
             onClick={() => setIsFormOpen((previous) => !previous)}
           >
-            <span className={styles.inlineCtaText}>{typedCtaText}</span>
+            <span className={styles.inlineCtaText}>
+              <span className={styles.inlineCtaTypeTrack}>
+                <span className={styles.inlineCtaWidthReserve} aria-hidden>
+                  {CTA_TEXT}
+                </span>
+                <span className={styles.inlineCtaTyped}>{typedCtaText}</span>
+              </span>
+            </span>
             {typedCtaText.length === CTA_TEXT.length ? (
               <span className={styles.ctaArrow} aria-hidden="true">
                 →
@@ -244,6 +254,7 @@ export default function Home() {
 
         {isFormOpen && formMessage ? <p className={styles.formStatus}>{formMessage}</p> : null}
         {isFormOpen && formError ? <p className={styles.formStatus}>{formError}</p> : null}
+        </div>
         </div>
       </div>
     </main>
