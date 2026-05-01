@@ -201,7 +201,6 @@ export function HomePageClient({
           loop
           muted
           playsInline
-          poster="/preview.png"
           preload="metadata"
         >
           <source src="/vid-hero-desktop.mp4" type="video/mp4" />
