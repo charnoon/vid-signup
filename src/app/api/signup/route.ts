@@ -65,16 +65,17 @@ export async function POST(request: Request) {
     );
   }
 
-  const { first_name, last_name, email, role, interest } = parsed.data;
+  const { email, role, marketing_consent } = parsed.data;
   const normalizedEmail = email.trim().toLowerCase();
 
   const supabaseAdmin = getSupabaseAdmin();
   const { error } = await supabaseAdmin.from("waitlist").insert({
-    first_name,
-    last_name,
+    first_name: "",
+    last_name: "",
     email: normalizedEmail,
     role: role || null,
-    interest: interest || null,
+    interest: null,
+    marketing_consent: marketing_consent ?? false,
   });
 
   if (error) {

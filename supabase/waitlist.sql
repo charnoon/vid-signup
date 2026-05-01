@@ -21,3 +21,6 @@ where last_name is null;
 
 alter table public.waitlist
 alter column last_name set not null;
+
+alter table public.waitlist
+add column if not exists marketing_consent boolean default false;
