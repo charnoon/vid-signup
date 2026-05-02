@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const signupSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address"),
-  role: z.string().trim().optional(),
   marketing_consent: z.boolean().optional(),
 });
 

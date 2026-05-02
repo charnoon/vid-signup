@@ -7,10 +7,8 @@ import type { SignupResponse } from "@/lib/validation";
 type FormState = "idle" | "loading" | "success" | "error";
 
 export function SignupForm() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("");
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [state, setState] = useState<FormState>("idle");
   const [message, setMessage] = useState("");
 
@@ -24,10 +22,8 @@ export function SignupForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          first_name: firstName,
-          last_name: lastName,
           email,
-          role: role || undefined,
+          marketing_consent: marketingConsent,
         }),
       });
 
@@ -40,11 +36,9 @@ export function SignupForm() {
       }
 
       setState("success");
-      setMessage("You're on the list");
-      setFirstName("");
-      setLastName("");
+      setMessage("You're In");
       setEmail("");
-      setRole("");
+      setMarketingConsent(false);
     } catch {
       setState("error");
       setMessage("Network error. Please try again.");
@@ -54,26 +48,6 @@ export function SignupForm() {
   return (
     <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12, maxWidth: 420 }}>
       <input
-        type="text"
-        name="first_name"
-        placeholder="First name"
-        value={firstName}
-        onChange={(event) => setFirstName(event.target.value)}
-        minLength={2}
-        required
-      />
-
-      <input
-        type="text"
-        name="last_name"
-        placeholder="Last name"
-        value={lastName}
-        onChange={(event) => setLastName(event.target.value)}
-        minLength={2}
-        required
-      />
-
-      <input
         type="email"
         name="email"
         placeholder="Email"
@@ -82,26 +56,29 @@ export function SignupForm() {
         required
       />
 
-      <select
-        name="role"
-        value={role}
-        onChange={(event) => setRole(event.target.value)}
-        aria-label="Role"
-      >
-        <option value="">Select your role (optional)</option>
-        <option value="founder">Founder</option>
-        <option value="developer">Developer</option>
-        <option value="designer">Designer</option>
-        <option value="marketer">Marketer</option>
-        <option value="other">Other</option>
-      </select>
+      <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14 }}>
+        <input
+          type="checkbox"
+          checked={marketingConsent}
+          onChange={(event) => setMarketingConsent(event.target.checked)}
+        />
+        Receive platform updates and new releases
+      </label>
 
-      <button type="submit" disabled={state === "loading"}>
-        {state === "loading" ? "Submitting..." : "Join waitlist"}
+      <button type="submit" disabled={state === "loading"} aria-busy={state === "loading"}>
+        {state === "loading" ? "Submitting…" : "Join waitlist"}
       </button>
 
-      {state === "success" ? <p>{message}</p> : null}
-      {state === "error" ? <p>{message}</p> : null}
+      {state === "success" ? (
+        <p role="status" aria-live="polite" style={{ margin: 0, fontSize: 16 }}>
+          {message}
+        </p>
+      ) : null}
+      {state === "error" ? (
+        <p role="alert" style={{ margin: 0, fontSize: 14, color: "#b42318" }}>
+          {message}
+        </p>
+      ) : null}
     </form>
   );
 }

@@ -1,3 +1,5 @@
+-- Waitlist signups (used by /api/signup).
+
 create extension if not exists pgcrypto;
 
 create table if not exists public.waitlist (

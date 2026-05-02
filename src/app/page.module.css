@@ -725,6 +725,28 @@
   font-family: inherit;
 }
 
+.formStatusPending {
+  margin: 0;
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 11px;
+  line-height: 1.45;
+  letter-spacing: calc(0.4 / 100 * 1em);
+  text-transform: uppercase;
+  font-family: inherit;
+}
+
+.formStatusSuccess {
+  margin: 0;
+  padding: 8px 0 4px;
+  color: #111;
+  font-size: clamp(1.1rem, 2.8vw, 1.35rem);
+  line-height: 1.2;
+  letter-spacing: calc(0.35 / 100 * 1em);
+  text-transform: uppercase;
+  font-family: inherit;
+  font-weight: normal;
+}
+
 @media (max-width: 480px) {
   .fieldShort {
     grid-column: 1;
@@ -774,7 +796,8 @@
   .headlineBlock {
     grid-column: 1 / span 8;
     grid-row: 1;
-    margin-top: calc(50vh - 20px);
+    /* Nudge headline up 40px on small screens only; CTA / sheet unchanged */
+    margin-top: calc(50vh - 60px);
   }
 
   .ctaBlock {
