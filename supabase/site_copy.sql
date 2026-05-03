@@ -12,6 +12,8 @@ comment on table public.site_copy is 'Marketing/homepage strings; edit values in
 
 insert into public.site_copy (key, value) values
   ('intro_text', 'is an online platform for new music visuals.'),
-  ('last_sentence_text', 'prioritises curation over algorithms.'),
+  ('last_sentence_text', 'Music television for the streaming era.'),
   ('cta_text', 'REQUEST EARLY ACCESS')
-on conflict (key) do nothing;
+on conflict (key) do update set
+  value = excluded.value,
+  updated_at = now();
