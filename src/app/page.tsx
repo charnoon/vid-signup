@@ -1,10 +1,6 @@
 import { HomePageClient } from "@/components/HomePageClient";
-import { getHomeCopy } from "@/lib/home-copy";
+import { DEFAULT_HOME_COPY } from "@/lib/home-copy-defaults";
 
-/** Revalidate homepage so Supabase copy edits appear without redeploying (ISR). */
-export const revalidate = 60;
-
-export default async function Home() {
-  const copy = await getHomeCopy();
-  return <HomePageClient {...copy} />;
+export default function Home() {
+  return <HomePageClient {...DEFAULT_HOME_COPY} />;
 }
