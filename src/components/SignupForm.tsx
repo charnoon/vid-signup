@@ -1,8 +1,8 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 
-import type { SignupResponse } from "@/lib/validation";
+import { signupSchema, type SignupResponse } from "@/lib/validation";
 
 type FormState = "idle" | "loading" | "success" | "error";
 
@@ -12,8 +12,30 @@ export function SignupForm() {
   const [state, setState] = useState<FormState>("idle");
   const [message, setMessage] = useState("");
 
+  const canSubmit = useMemo(
+    () =>
+      signupSchema.safeParse({ email, marketing_consent: marketingConsent })
+        .success,
+    [email, marketingConsent],
+  );
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const parsed = signupSchema.safeParse({
+      email,
+      marketing_consent: marketingConsent,
+    });
+    if (!parsed.success) {
+      const { fieldErrors } = parsed.error.flatten();
+      setState("error");
+      setMessage(
+        fieldErrors.email?.[0] ??
+          fieldErrors.marketing_consent?.[0] ??
+          "Invalid input.",
+      );
+      return;
+    }
+
     setState("loading");
     setMessage("");
 
@@ -36,7 +58,7 @@ export function SignupForm() {
       }
 
       setState("success");
-      setMessage("You're In");
+      setMessage("Success");
       setEmail("");
       setMarketingConsent(false);
     } catch {
@@ -60,17 +82,27 @@ export function SignupForm() {
         <input
           type="checkbox"
           checked={marketingConsent}
-          onChange={(event) => setMarketingConsent(event.target.checked)}
+          onChange={(event) => {
+            setMarketingConsent(event.target.checked);
+            if (state === "error") {
+              setState("idle");
+              setMessage("");
+            }
+          }}
         />
         Receive platform updates and new releases
       </label>
 
-      <button type="submit" disabled={state === "loading"} aria-busy={state === "loading"}>
-        {state === "loading" ? "Submitting…" : "Join waitlist"}
+      <button type="submit" disabled={state === "loading" || !canSubmit}>
+        Join waitlist
       </button>
 
       {state === "success" ? (
-        <p role="status" aria-live="polite" style={{ margin: 0, fontSize: 16 }}>
+        <p
+          role="status"
+          aria-live="polite"
+          style={{ margin: 0, fontSize: 16, color: "rgba(0, 0, 0, 0.42)" }}
+        >
           {message}
         </p>
       ) : null}

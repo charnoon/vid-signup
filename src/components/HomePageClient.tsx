@@ -143,6 +143,14 @@ export function HomePageClient({
     };
   }, [introText, lastSentenceText, ctaText]);
 
+  const showEmailOverlay = submitSucceeded || !!formError;
+  const emailOverlayId = submitSucceeded
+    ? "signup-success-message"
+    : "signup-email-error";
+  const emailOverlayClass = submitSucceeded
+    ? styles.emailSubmitOverlaySuccess
+    : styles.emailSubmitOverlayError;
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitSucceeded) {
@@ -153,9 +161,10 @@ export function HomePageClient({
       marketing_consent: marketingConsent,
     });
     if (!parsed.success) {
-      const emailErr =
-        parsed.error.flatten().fieldErrors.email?.[0] ?? "Invalid input.";
-      setFormError(emailErr);
+      const { fieldErrors } = parsed.error.flatten();
+      const emailErr = fieldErrors.email?.[0];
+      const consentErr = fieldErrors.marketing_consent?.[0];
+      setFormError(emailErr ?? consentErr ?? "Invalid input.");
       return;
     }
     setIsSubmitting(true);
@@ -299,130 +308,119 @@ export function HomePageClient({
               className={styles.formOverlay}
               role="dialog"
               aria-modal="true"
-              aria-label={submitSucceeded ? "You're In" : "Request early access"}
+              aria-label={submitSucceeded ? "Success" : "Request early access"}
             >
               <BouncingLogo />
               <div className={styles.formOverlayInner}>
                 <div className={styles.formOverlayMain}>
                   <form className={styles.signupForm} onSubmit={handleSubmit}>
-                    {submitSucceeded ? (
-                      <p
-                        id="signup-success-message"
-                        className={`${styles.formStatusSuccess} ${styles.signupFormFieldError}`}
-                        role="status"
-                        aria-live="polite"
-                      >
-                        {"You're In"}
-                      </p>
-                    ) : (
-                      <>
-                        <div
-                          className={`${styles.field} ${styles.fieldLong} ${styles.emailSubmitRow}`}
+                    <div
+                      className={`${styles.field} ${styles.fieldLong} ${styles.emailSubmitRow}`}
+                    >
+                      <label htmlFor="signup-email" className={styles.visuallyHidden}>
+                        Email address
+                      </label>
+                      <div className={styles.emailSubmitTrack}>
+                        <div className={styles.emailSubmitInputSlot}>
+                          <input
+                            id="signup-email"
+                            ref={emailFieldRef}
+                            type="email"
+                            name="email"
+                            autoComplete="email"
+                            aria-required="true"
+                            aria-invalid={!!formError}
+                            aria-describedby={
+                              [
+                                submitSucceeded ? "" : "signup-consent-notice",
+                                showEmailOverlay ? emailOverlayId : "",
+                              ]
+                                .filter(Boolean)
+                                .join(" ") || undefined
+                            }
+                            className={styles.emailSubmitInput}
+                            placeholder="Email"
+                            value={email}
+                            onChange={(event) => {
+                              setEmail(event.target.value);
+                              if (formError) {
+                                setFormError(null);
+                              }
+                            }}
+                            disabled={isSubmitting || submitSucceeded}
+                          />
+                          {showEmailOverlay ? (
+                            <div
+                              id={emailOverlayId}
+                              className={`${styles.emailSubmitOverlay} ${emailOverlayClass}`}
+                              role={
+                                formError && !submitSucceeded ? "alert" : "status"
+                              }
+                              aria-live="polite"
+                            >
+                              {submitSucceeded ? "Success" : formError}
+                            </div>
+                          ) : null}
+                        </div>
+                        <button
+                          type="submit"
+                          className={styles.submitArrowInline}
+                          disabled={
+                            isSubmitting || submitSucceeded || !canSubmitForm
+                          }
+                          aria-label={
+                            submitSucceeded ? "Success" : "Submit signup"
+                          }
                         >
-                          <label
-                            htmlFor="signup-email"
-                            className={styles.visuallyHidden}
+                          <span
+                            className={styles.submitArrowInlineGlyph}
+                            aria-hidden
                           >
-                            Email address
-                          </label>
-                          <div className={styles.emailSubmitTrack}>
-                            <input
-                              id="signup-email"
-                              ref={emailFieldRef}
-                              type="email"
-                              name="email"
-                              autoComplete="email"
-                              aria-required="true"
-                              aria-invalid={!!formError}
-                              aria-describedby={
-                                [
-                                  "signup-consent-notice",
-                                  formError ? "signup-email-error" : "",
-                                  isSubmitting ? "signup-pending-status" : "",
-                                ]
-                                  .filter(Boolean)
-                                  .join(" ") || undefined
+                            →
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div
+                      className={
+                        submitSucceeded
+                          ? `${styles.formConsentRow} ${styles.formConsentRowVisuallyHidden}`
+                          : styles.formConsentRow
+                      }
+                      aria-hidden={submitSucceeded}
+                    >
+                      <label className={styles.formConsentLabel}>
+                        <span className={styles.formConsentControl}>
+                          <input
+                            id="signup-marketing-consent"
+                            type="checkbox"
+                            name="marketing_consent"
+                            className={styles.formConsentCheckboxInput}
+                            checked={marketingConsent}
+                            onChange={(event) => {
+                              setMarketingConsent(event.target.checked);
+                              if (formError) {
+                                setFormError(null);
                               }
-                              className={styles.emailSubmitInput}
-                              placeholder="Email"
-                              value={email}
-                              onChange={(event) => {
-                                setEmail(event.target.value);
-                                if (formError) {
-                                  setFormError(null);
-                                }
-                              }}
-                              disabled={isSubmitting}
-                            />
-                            <button
-                              type="submit"
-                              className={styles.submitArrowInline}
-                              disabled={isSubmitting || !canSubmitForm}
-                              aria-busy={isSubmitting}
-                              aria-label={
-                                isSubmitting ? "Submitting" : "Submit signup"
-                              }
-                            >
-                              <span
-                                className={styles.submitArrowInlineGlyph}
-                                aria-hidden
-                              >
-                                {isSubmitting ? "…" : "→"}
-                              </span>
-                            </button>
-                          </div>
-                        </div>
-
-                        {isSubmitting ? (
-                          <p
-                            id="signup-pending-status"
-                            className={`${styles.formStatusPending} ${styles.signupFormFieldError}`}
-                            aria-live="polite"
-                          >
-                            Submitting…
-                          </p>
-                        ) : null}
-
-                        {formError ? (
-                          <p
-                            id="signup-email-error"
-                            className={`${styles.formStatusError} ${styles.signupFormFieldError}`}
-                            role="alert"
-                          >
-                            {formError}
-                          </p>
-                        ) : null}
-
-                        <div className={styles.formConsentRow}>
-                          <label className={styles.formConsentLabel}>
-                            <span className={styles.formConsentControl}>
-                              <input
-                                id="signup-marketing-consent"
-                                type="checkbox"
-                                name="marketing_consent"
-                                className={styles.formConsentCheckboxInput}
-                                checked={marketingConsent}
-                                onChange={(event) =>
-                                  setMarketingConsent(event.target.checked)
-                                }
-                                disabled={isSubmitting}
-                              />
-                              <span className={styles.formConsentBox} aria-hidden>
-                                {marketingConsent ? (
-                                  <span className={styles.formConsentMark}>×</span>
-                                ) : null}
-                              </span>
-                            </span>
-                            <span
-                              id="signup-consent-notice"
-                              className={styles.formConsentText}
-                            >
-                              Receive platform updates and new releases.
-                            </span>
-                          </label>
-                        </div>
-                      </>
-                    )}
+                            }}
+                            disabled={isSubmitting || submitSucceeded}
+                            tabIndex={submitSucceeded ? -1 : undefined}
+                          />
+                          <span className={styles.formConsentBox} aria-hidden>
+                            {marketingConsent ? (
+                              <span className={styles.formConsentMark}>×</span>
+                            ) : null}
+                          </span>
+                        </span>
+                        <span
+                          id="signup-consent-notice"
+                          className={styles.formConsentText}
+                        >
+                          Receive platform updates and new releases.
+                        </span>
+                      </label>
+                    </div>
                   </form>
                 </div>
 
