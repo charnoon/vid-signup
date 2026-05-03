@@ -224,6 +224,7 @@ export function HomePageClient({
           <h1 className={styles.headline}>
             <span>Vid</span>
             <span className={styles.blinkingDot}>.</span>
+            <span className={styles.headlineAfterVid}>{" "}</span>
             <span className={styles.typed}>{typedText}</span>
           </h1>
         </div>

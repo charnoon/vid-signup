@@ -158,6 +158,12 @@
   animation: blink 1.4s ease-in-out infinite;
 }
 
+.headlineAfterVid {
+  white-space: pre;
+  font: inherit;
+  letter-spacing: inherit;
+}
+
 .typed {
   white-space: pre-wrap;
 }
