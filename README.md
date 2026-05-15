@@ -34,3 +34,13 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Supabase keepalive (free tier)
+
+A scheduled GitHub Actions workflow pings your Supabase project twice per week (Mondays and Thursdays) so it is less likely to pause for inactivity. The workflow only performs a read on a small `keepalive` table; it does not change how the Next.js app works.
+
+1. In the Supabase SQL Editor, run [`supabase/keepalive.sql`](supabase/keepalive.sql).
+2. In GitHub, open **Settings → Secrets and variables → Actions** and add:
+   - `SUPABASE_URL` — your project URL (e.g. `https://YOUR_PROJECT_REF.supabase.co`)
+   - `SUPABASE_ANON_KEY` — the publishable/anon API key (not the service role or secret key)
+3. The workflow runs automatically on schedule. To run it immediately: **Actions → Keep Supabase awake → Run workflow**.

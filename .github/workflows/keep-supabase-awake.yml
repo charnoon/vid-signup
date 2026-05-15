@@ -1,0 +1,71 @@
+# Pings Supabase twice per week so a free-tier project is less likely to pause for inactivity.
+#
+# Required GitHub repository secrets (Settings → Secrets and variables → Actions → New repository secret):
+#   SUPABASE_URL       — Project URL, e.g. https://YOUR_PROJECT_REF.supabase.co (no trailing slash)
+#   SUPABASE_ANON_KEY  — Publishable/anon key from Supabase → Project Settings → API Keys
+#                        (sb_publishable_… or legacy anon JWT). Do NOT use the service_role / secret key.
+#
+# Apply supabase/keepalive.sql in the Supabase SQL Editor before the first run.
+#
+# Manual run: Actions → Keep Supabase awake → Run workflow
+
+name: Keep Supabase awake
+
+on:
+  schedule:
+    # Mondays and Thursdays at 09:00 UTC
+    - cron: "0 9 * * 1"
+    - cron: "0 9 * * 4"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping keepalive table
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SUPABASE_URL:-}" ]; then
+            echo "::error::Missing SUPABASE_URL repository secret. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+          if [ -z "${SUPABASE_ANON_KEY:-}" ]; then
+            echo "::error::Missing SUPABASE_ANON_KEY repository secret. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+          base_url="${SUPABASE_URL%/}"
+          endpoint="${base_url}/rest/v1/keepalive?select=id&limit=1"
+
+          echo "GET ${endpoint}"
+
+          response_file="$(mktemp)"
+          http_code="$(
+            curl -sS -o "${response_file}" -w "%{http_code}" \
+              -H "apikey: ${SUPABASE_ANON_KEY}" \
+              -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+              "${endpoint}"
+          )"
+
+          body="$(cat "${response_file}")"
+          rm -f "${response_file}"
+
+          echo "HTTP ${http_code}"
+          echo "Response: ${body}"
+
+          if [ "${http_code}" -lt 200 ] || [ "${http_code}" -ge 300 ]; then
+            echo "::error::Keepalive ping failed with HTTP ${http_code}. Check secrets, run supabase/keepalive.sql, and confirm the project is active."
+            exit 1
+          fi
+
+          if ! echo "${body}" | grep -q '"id"'; then
+            echo "::error::Keepalive ping returned HTTP ${http_code} but no row id in the response. Run supabase/keepalive.sql to create the table and seed a row."
+            exit 1
+          fi
+
+          echo "Keepalive ping succeeded."
