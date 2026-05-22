@@ -11,19 +11,8 @@ import { signupSchema, type SignupResponse } from "@/lib/validation";
 
 const REVEAL_DELAY_MS = 2000;
 const TYPE_INTERVAL_MS = 45;
-const DELETE_INTERVAL_MS = 26;
-const PHRASE_HOLD_MS = 2800;
 
-export function HomePageClient({
-  introText,
-  lastSentenceText,
-  ctaText,
-}: HomeCopy) {
-  const rotatingPhrases = useMemo(
-    () => [introText, lastSentenceText] as const,
-    [introText, lastSentenceText],
-  );
-
+export function HomePageClient({ headlineText, ctaText }: HomeCopy) {
   const [typedText, setTypedText] = useState("");
   const [typedCtaText, setTypedCtaText] = useState("");
   const [hasIntroCompleted, setHasIntroCompleted] = useState(false);
@@ -94,19 +83,11 @@ export function HomePageClient({
       }
     };
 
-    const deletePhrase = async (phrase: string) => {
-      for (let index = phrase.length - 1; index >= 0; index -= 1) {
-        if (cancelled) return;
-        setTypedText(phrase.slice(0, index));
-        await wait(DELETE_INTERVAL_MS);
-      }
-    };
-
     const runTypewriter = async () => {
       await wait(REVEAL_DELAY_MS);
       if (cancelled) return;
 
-      await typePhrase(introText);
+      await typePhrase(headlineText);
       if (cancelled) return;
 
       setHasIntroCompleted(true);
@@ -114,22 +95,6 @@ export function HomePageClient({
         if (cancelled) return;
         setTypedCtaText(ctaText.slice(0, index));
         await wait(TYPE_INTERVAL_MS);
-      }
-
-      let phraseIndex = 0;
-      let currentPhrase = rotatingPhrases[phraseIndex]!;
-
-      while (!cancelled) {
-        await wait(PHRASE_HOLD_MS);
-        if (cancelled) return;
-
-        await deletePhrase(currentPhrase);
-        if (cancelled) return;
-
-        const nextIndex = (phraseIndex + 1) % rotatingPhrases.length;
-        currentPhrase = rotatingPhrases[nextIndex]!;
-        phraseIndex = nextIndex;
-        await typePhrase(currentPhrase);
       }
     };
 
@@ -141,7 +106,7 @@ export function HomePageClient({
         window.clearTimeout(timer);
       }
     };
-  }, [introText, lastSentenceText, ctaText]);
+  }, [headlineText, ctaText]);
 
   const showEmailOverlay = submitSucceeded || !!formError;
   const emailOverlayId = submitSucceeded

@@ -29,9 +29,16 @@ function signupInsertErrorMessage(error: {
   }
   if (
     m.includes("invalid api key") ||
-    m.includes("jwt") && m.includes("invalid")
+    (m.includes("jwt") && m.includes("invalid"))
   ) {
     return "Invalid Supabase API key on the server. Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY where the app is hosted.";
+  }
+  if (
+    m.includes("fetch failed") ||
+    m.includes("enotfound") ||
+    m.includes("econnrefused")
+  ) {
+    return "Cannot reach Supabase. Check SUPABASE_URL matches an active project (Supabase → Project Settings → API), update env on your host, then redeploy.";
   }
   return "Unable to save signup right now";
 }
