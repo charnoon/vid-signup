@@ -1,12 +1,15 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import Hls from "hls.js";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
+import {
+  getIntroStream,
+  PROMO_POSTER,
+  supportsNativeHls,
+} from "./intro-stream";
 import styles from "./intro.module.css";
 
-const PROMO_SRC = "/assets/intro/vid-intro-promo.mp4";
-const PROMO_SRC_MOBILE = "/assets/intro/vid-intro-promo-mobile.mp4";
-const PROMO_POSTER = "/assets/intro/vid-intro-promo-poster.jpg";
 const LOAD_RAMP_MS = 8_000;
 const PLAY_RETRY_MS = 400;
 
@@ -200,6 +203,8 @@ export function IntroVideo() {
   const [progress, setProgress] = useState(0);
   const [isRebuffering, setIsRebuffering] = useState(false);
 
+  const stream = useMemo(() => (touchReady ? getIntroStream(isTouch) : null), [isTouch, touchReady]);
+
   useEffect(() => {
     phaseRef.current = phase;
   }, [phase]);
@@ -208,6 +213,31 @@ export function IntroVideo() {
     setIsTouch(isTouchDevice());
     setTouchReady(true);
   }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !stream) return;
+
+    let hls: Hls | null = null;
+
+    if (stream.kind === "hls") {
+      if (supportsNativeHls(video)) {
+        video.src = stream.src;
+      } else if (Hls.isSupported()) {
+        hls = new Hls({ enableWorker: true });
+        hls.loadSource(stream.src);
+        hls.attachMedia(video);
+      } else {
+        video.src = stream.src;
+      }
+    } else {
+      video.src = stream.src;
+    }
+
+    return () => {
+      hls?.destroy();
+    };
+  }, [stream]);
 
   startPlaybackFromGestureRef.current = () => {
     const video = videoRef.current;
@@ -494,9 +524,7 @@ export function IntroVideo() {
         playsInline
         preload="metadata"
         aria-label="Vid. promo film"
-      >
-        <source src={isTouch ? PROMO_SRC_MOBILE : PROMO_SRC} type="video/mp4" />
-      </video>
+      />
       {showLoadOverlay ? (
         <button
           ref={overlayRef}
