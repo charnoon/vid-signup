@@ -1,9 +1,8 @@
 "use client";
 
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import {
-  getIntroPoster,
   getIntroVideoSrc,
   INTRO_VIDEO_HEIGHT,
   INTRO_VIDEO_WIDTH,
@@ -184,6 +183,7 @@ export function IntroVideo() {
   const hasStartedPlaybackRef = useRef(false);
   const unlockMutedOnFirstPlayRef = useRef(false);
   const isScrubbingRef = useRef(false);
+  const isTouchRef = useRef(false);
   const startPlaybackFromGestureRef = useRef<() => void>(() => {});
 
   const [isTouch, setIsTouch] = useState(false);
@@ -197,7 +197,6 @@ export function IntroVideo() {
   const [progress, setProgress] = useState(0);
   const [isRebuffering, setIsRebuffering] = useState(false);
 
-  const poster = useMemo(() => getIntroPoster(), []);
   const [videoSrc, setVideoSrc] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -205,7 +204,9 @@ export function IntroVideo() {
   }, [phase]);
 
   useEffect(() => {
-    setIsTouch(isTouchDevice());
+    const touch = isTouchDevice();
+    setIsTouch(touch);
+    isTouchRef.current = touch;
     setVideoSrc(getIntroVideoSrc(shouldUseMobileIntro()));
   }, []);
 
@@ -246,6 +247,7 @@ export function IntroVideo() {
       unlockMutedOnFirstPlayRef.current = true;
     } else {
       video.muted = false;
+      setIsMuted(false);
       unlockMutedOnFirstPlayRef.current = false;
     }
 
@@ -274,6 +276,9 @@ export function IntroVideo() {
         video.muted = false;
         video.volume = 1;
         unlockMutedOnFirstPlayRef.current = false;
+      } else if (!isTouchRef.current) {
+        video.muted = false;
+        video.volume = 1;
       }
 
       syncPlaybackState();
@@ -327,20 +332,14 @@ export function IntroVideo() {
       markVideoInline(video);
       video.volume = 1;
       video.muted = false;
+      setIsMuted(false);
       setPlayRequested(true);
 
       try {
         await video.play();
       } catch {
         setPlayRequested(false);
-        try {
-          video.muted = true;
-          setPlayRequested(true);
-          await video.play();
-          setIsMuted(true);
-        } catch {
-          setShowPlayIcon(true);
-        }
+        setShowPlayIcon(true);
       }
     };
 
@@ -566,6 +565,16 @@ export function IntroVideo() {
     webkitVideo.webkitEnterFullscreen?.();
   };
 
+  const onStageMouseLeave = () => {
+    const stage = stageRef.current;
+    if (!stage || isTouchRef.current) return;
+
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && stage.contains(active)) {
+      active.blur();
+    }
+  };
+
   const showLoadOverlay = phase === "loading";
   const overlayShowsPlay = showPlayIcon && !playRequested;
 
@@ -573,7 +582,7 @@ export function IntroVideo() {
     <div
       ref={stageRef}
       className={styles.videoStage}
-      style={poster ? { backgroundImage: `url("${poster}")` } : undefined}
+      onMouseLeave={onStageMouseLeave}
     >
       <video
         ref={videoRef}
@@ -581,7 +590,6 @@ export function IntroVideo() {
         src={videoSrc}
         width={INTRO_VIDEO_WIDTH}
         height={INTRO_VIDEO_HEIGHT}
-        poster={poster}
         loop
         playsInline
         preload="auto"

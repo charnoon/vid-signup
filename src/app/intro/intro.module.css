@@ -140,6 +140,7 @@ button.mediaOverlay {
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  background: #000;
 }
 
 .overlayStatus {
@@ -197,8 +198,7 @@ button.mediaOverlay {
     pointer-events: none;
   }
 
-  .videoStage:hover .controlsDock,
-  .videoStage:focus-within .controlsDock {
+  .videoStage:hover .controlsDock {
     opacity: 1;
     pointer-events: auto;
   }
