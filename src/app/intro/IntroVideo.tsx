@@ -635,7 +635,9 @@ export function IntroVideo() {
   return (
     <div
       ref={stageRef}
-      className={styles.videoStage}
+      className={`${styles.videoStage} ${
+        phase === "loading" ? styles.videoStageFrameOutline : ""
+      }`}
       onMouseLeave={onStageMouseLeave}
       onPointerDown={onStagePointerDown}
     >
@@ -659,9 +661,7 @@ export function IntroVideo() {
         >
           <OverlayStatus>
             {overlayShowsPlay ? (
-              <span className={styles.overlayPlayPill}>
-                <span className={styles.overlayPlayLabel}>PLAY</span>
-              </span>
+              <span className={styles.overlayPlayLabel}>PLAY</span>
             ) : (
               <span className={styles.overlayPercent}>{loadPercent}</span>
             )}
