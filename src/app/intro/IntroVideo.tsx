@@ -158,11 +158,8 @@ function isMediaReady(video: HTMLVideoElement) {
 function isTouchDevice() {
   if (typeof window === "undefined") return false;
 
-  return (
-    "ontouchstart" in window ||
-    window.matchMedia("(pointer: coarse)").matches ||
-    window.matchMedia("(hover: none)").matches
-  );
+  // Safari on macOS reports ontouchstart; use primary input instead.
+  return window.matchMedia("(hover: none) and (pointer: coarse)").matches;
 }
 
 function markVideoInline(video: HTMLVideoElement) {
@@ -266,7 +263,7 @@ export function IntroVideo() {
 
     video.volume = 1;
 
-    if (isTouch) {
+    if (isTouchRef.current) {
       video.muted = true;
       unlockMutedOnFirstPlayRef.current = true;
     } else {
@@ -279,9 +276,16 @@ export function IntroVideo() {
     if (!playPromise) return;
 
     playPromise.catch(() => {
-      setPlayRequested(false);
-      setShowPlayIcon(true);
-      unlockMutedOnFirstPlayRef.current = false;
+      video.muted = true;
+      if (!isTouchRef.current) {
+        unlockMutedOnFirstPlayRef.current = true;
+      }
+
+      void video.play().catch(() => {
+        setPlayRequested(false);
+        setShowPlayIcon(true);
+        unlockMutedOnFirstPlayRef.current = false;
+      });
     });
   };
 
@@ -343,6 +347,11 @@ export function IntroVideo() {
     maxDisplayPercentRef.current = 0;
     loadCompleteRef.current = false;
 
+    markVideoInline(video);
+    // Muted preload helps Safari/WebKit start buffering before user gesture.
+    video.muted = true;
+    video.load();
+
     const finishLoading = async () => {
       if (phaseRef.current !== "loading" || loadCompleteRef.current) return;
 
@@ -351,7 +360,7 @@ export function IntroVideo() {
       setLoadPercent(100);
       setShowPlayIcon(true);
 
-      if (isTouch) return;
+      if (isTouchRef.current) return;
 
       markVideoInline(video);
       video.volume = 1;
@@ -372,21 +381,29 @@ export function IntroVideo() {
 
       const mediaPercent = getMediaLoadPercent(video);
       const timedPercent = getTimedLoadPercent(loadStartedAtRef.current);
-      const nextPercent = Math.min(
-        100,
-        Math.max(maxDisplayPercentRef.current, mediaPercent, timedPercent),
+      const ready = isMediaReady(video);
+      const rawPercent = Math.max(
+        maxDisplayPercentRef.current,
+        mediaPercent,
+        timedPercent,
       );
+      const nextPercent = ready ? Math.min(100, rawPercent) : Math.min(99, rawPercent);
 
       maxDisplayPercentRef.current = nextPercent;
       setLoadPercent(nextPercent);
 
-      if (!loadCompleteRef.current && (isMediaReady(video) || nextPercent >= 100)) {
+      if (!loadCompleteRef.current && ready) {
         void finishLoading();
       }
     };
 
     const onMediaEvent = () => {
       syncLoadState();
+    };
+
+    const onError = () => {
+      if (phaseRef.current !== "loading") return;
+      setShowPlayIcon(true);
     };
 
     const pollId = window.setInterval(syncLoadState, 80);
@@ -397,6 +414,7 @@ export function IntroVideo() {
     video.addEventListener("canplay", onMediaEvent);
     video.addEventListener("canplaythrough", onMediaEvent);
     video.addEventListener("progress", onMediaEvent);
+    video.addEventListener("error", onError);
 
     syncLoadState();
 
@@ -408,8 +426,9 @@ export function IntroVideo() {
       video.removeEventListener("canplay", onMediaEvent);
       video.removeEventListener("canplaythrough", onMediaEvent);
       video.removeEventListener("progress", onMediaEvent);
+      video.removeEventListener("error", onError);
     };
-  }, [isTouch, videoSrc]);
+  }, [videoSrc]);
 
   useEffect(() => {
     if (phase !== "playing" || !isTouch) return;
@@ -641,7 +660,7 @@ export function IntroVideo() {
     >
       <video
         ref={videoRef}
-        className={`${styles.video} ${phase === "playing" ? styles.videoVisible : ""}`}
+        className={styles.video}
         src={videoSrc}
         width={INTRO_VIDEO_WIDTH}
         height={INTRO_VIDEO_HEIGHT}

@@ -184,12 +184,6 @@
   object-fit: contain;
   border-radius: 8px;
   background: transparent;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.videoVisible {
-  opacity: 1;
 }
 
 .mediaOverlay {
