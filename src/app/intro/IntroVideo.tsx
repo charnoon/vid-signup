@@ -5,6 +5,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import styles from "./intro.module.css";
 
 const PROMO_SRC = "/assets/intro/vid-intro-promo.mp4";
+const PROMO_SRC_MOBILE = "/assets/intro/vid-intro-promo-mobile.mp4";
 const PROMO_POSTER = "/assets/intro/vid-intro-promo-poster.jpg";
 const LOAD_RAMP_MS = 8_000;
 const PLAY_RETRY_MS = 400;
@@ -277,10 +278,7 @@ export function IntroVideo() {
     loadStartedAtRef.current = Date.now();
     maxDisplayPercentRef.current = 0;
     loadCompleteRef.current = false;
-
-    if (!isTouch) {
-      video.load();
-    }
+    video.load();
 
     const finishLoading = async () => {
       if (phaseRef.current !== "loading" || loadCompleteRef.current) return;
@@ -497,7 +495,7 @@ export function IntroVideo() {
         preload="metadata"
         aria-label="Vid. promo film"
       >
-        <source src={PROMO_SRC} type="video/mp4" />
+        <source src={isTouch ? PROMO_SRC_MOBILE : PROMO_SRC} type="video/mp4" />
       </video>
       {showLoadOverlay ? (
         <button
