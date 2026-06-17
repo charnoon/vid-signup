@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   description: "A new platform for music visuals.",
 };
 
+// Ensure each deploy serves fresh intro assets (player UI updates often).
+export const dynamic = "force-dynamic";
+
 export default function IntroPage() {
   const poster = getIntroPoster();
 

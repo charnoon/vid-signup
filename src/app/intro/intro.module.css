@@ -174,11 +174,13 @@ button.mediaOverlay {
   justify-self: stretch;
   z-index: 3;
   margin: 0 8px 10px;
-  padding: 2px 6px;
+  padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.52);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
   transition: opacity 0.2s ease;
 }
 
@@ -202,16 +204,25 @@ button.mediaOverlay {
   }
 }
 
+/* Always show controls on touch devices */
+@media (hover: none), (pointer: coarse) {
+  .controlsDock {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 .controlGroup {
   display: flex;
-  gap: 20px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
 .controlGroup .controlButton {
   padding: 0;
-  min-width: 44px;
-  width: 44px;
+  min-width: 40px;
+  width: 40px;
+  min-height: 40px;
 }
 
 .timeline {
@@ -220,7 +231,7 @@ button.mediaOverlay {
   height: 28px;
   display: flex;
   align-items: center;
-  margin-inline: 2px 20px;
+  margin-inline: 0 6px;
   cursor: pointer;
   touch-action: none;
 }
