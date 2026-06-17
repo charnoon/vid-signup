@@ -34,7 +34,7 @@ export default function IntroPage() {
       />
       <div className={styles.content}>
         <div className={styles.topBar}>
-          <div className={styles.logo}>
+          <a className={styles.logo} href="https://vid.global">
             {/* eslint-disable-next-line @next/next/no-img-element -- local SVG asset */}
             <img
               src="/logo.svg"
@@ -43,7 +43,7 @@ export default function IntroPage() {
               height={71}
               decoding="async"
             />
-          </div>
+          </a>
           <a className={styles.enquireLink} href="mailto:info@vid.global">
             Enquire
           </a>

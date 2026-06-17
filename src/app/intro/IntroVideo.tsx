@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 
 import {
   getIntroVideoSrc,
@@ -12,6 +12,7 @@ import styles from "./intro.module.css";
 
 const LOAD_RAMP_MS = 2_500;
 const PLAY_RETRY_MS = 400;
+const CONTROLS_IDLE_MS = 3_000;
 
 type IntroPhase = "loading" | "playing";
 
@@ -184,6 +185,7 @@ export function IntroVideo() {
   const unlockMutedOnFirstPlayRef = useRef(false);
   const isScrubbingRef = useRef(false);
   const isTouchRef = useRef(false);
+  const controlsHideTimerRef = useRef<number | null>(null);
   const startPlaybackFromGestureRef = useRef<() => void>(() => {});
 
   const [isTouch, setIsTouch] = useState(false);
@@ -196,6 +198,7 @@ export function IntroVideo() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isRebuffering, setIsRebuffering] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
 
   const [videoSrc, setVideoSrc] = useState<string | undefined>(undefined);
 
@@ -209,6 +212,27 @@ export function IntroVideo() {
     isTouchRef.current = touch;
     setVideoSrc(getIntroVideoSrc(shouldUseMobileIntro()));
   }, []);
+
+  const scheduleControlsHide = useCallback(() => {
+    if (!isTouchRef.current) return;
+
+    if (controlsHideTimerRef.current !== null) {
+      window.clearTimeout(controlsHideTimerRef.current);
+    }
+
+    controlsHideTimerRef.current = window.setTimeout(() => {
+      if (!isScrubbingRef.current) {
+        setControlsVisible(false);
+      }
+    }, CONTROLS_IDLE_MS);
+  }, []);
+
+  const revealControls = useCallback(() => {
+    if (!isTouchRef.current) return;
+
+    setControlsVisible(true);
+    scheduleControlsHide();
+  }, [scheduleControlsHide]);
 
   const syncPlaybackState = () => {
     const video = videoRef.current;
@@ -388,6 +412,19 @@ export function IntroVideo() {
   }, [isTouch, videoSrc]);
 
   useEffect(() => {
+    if (phase !== "playing" || !isTouch) return;
+
+    setControlsVisible(true);
+    scheduleControlsHide();
+
+    return () => {
+      if (controlsHideTimerRef.current !== null) {
+        window.clearTimeout(controlsHideTimerRef.current);
+      }
+    };
+  }, [phase, isTouch, scheduleControlsHide]);
+
+  useEffect(() => {
     const overlay = overlayRef.current;
     if (!overlay || phase !== "loading") return;
 
@@ -465,6 +502,8 @@ export function IntroVideo() {
     const video = videoRef.current;
     if (!video) return;
 
+    revealControls();
+
     if (!video.paused) {
       video.pause();
       return;
@@ -495,6 +534,7 @@ export function IntroVideo() {
   const onTimelinePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
 
+    revealControls();
     isScrubbingRef.current = true;
     event.currentTarget.setPointerCapture(event.pointerId);
     seekToPosition(event.clientX);
@@ -513,6 +553,8 @@ export function IntroVideo() {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
+
+    scheduleControlsHide();
   };
 
   const onTimelineKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -534,6 +576,7 @@ export function IntroVideo() {
     const video = videoRef.current;
     if (!video) return;
 
+    revealControls();
     unlockMutedOnFirstPlayRef.current = false;
     video.muted = !video.muted;
 
@@ -548,6 +591,8 @@ export function IntroVideo() {
     const stage = stageRef.current;
     const video = videoRef.current;
     if (!stage || !video) return;
+
+    revealControls();
 
     if (document.fullscreenElement) {
       await document.exitFullscreen();
@@ -575,6 +620,15 @@ export function IntroVideo() {
     }
   };
 
+  const onStagePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isTouchRef.current || phase !== "playing") return;
+
+    const target = event.target as HTMLElement;
+    if (target.closest("[data-intro-controls]")) return;
+
+    revealControls();
+  };
+
   const showLoadOverlay = phase === "loading";
   const overlayShowsPlay = showPlayIcon && !playRequested;
 
@@ -583,6 +637,7 @@ export function IntroVideo() {
       ref={stageRef}
       className={styles.videoStage}
       onMouseLeave={onStageMouseLeave}
+      onPointerDown={onStagePointerDown}
     >
       <video
         ref={videoRef}
@@ -604,7 +659,9 @@ export function IntroVideo() {
         >
           <OverlayStatus>
             {overlayShowsPlay ? (
-              <span className={styles.overlayPlayLabel}>PLAY</span>
+              <span className={styles.overlayPlayPill}>
+                <span className={styles.overlayPlayLabel}>PLAY</span>
+              </span>
             ) : (
               <span className={styles.overlayPercent}>{loadPercent}</span>
             )}
@@ -619,7 +676,12 @@ export function IntroVideo() {
         </div>
       ) : null}
       {phase === "playing" ? (
-        <div className={styles.controlsDock}>
+        <div
+          className={`${styles.controlsDock} ${
+            isTouch && !controlsVisible ? styles.controlsDockHidden : ""
+          }`}
+          data-intro-controls
+        >
           <div className={styles.controlsBar}>
             <button
               type="button"

@@ -43,20 +43,27 @@
 
 .logo {
   line-height: 0;
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  width: fit-content;
+  max-width: fit-content;
   pointer-events: auto;
+  display: block;
+  text-decoration: none;
 }
 
 .enquireLink {
   flex-shrink: 0;
   pointer-events: auto;
   color: #fff;
-  font-size: var(--intro-logo-height);
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: 0.02em;
+  font-family: "OffBit Dot", sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  font-synthesis: none;
+  text-transform: uppercase;
+  letter-spacing: calc(2 / 100 * 1em);
+  line-height: 1.12;
   text-decoration: none;
-  opacity: 0.92;
+  opacity: 1;
   transition: opacity 0.2s ease;
 }
 
@@ -67,6 +74,7 @@
 
 @media (max-width: 768px) {
   .page {
+    --intro-inset-block: 12px;
     --intro-logo-height: clamp(12px, 2.97vw, 15px);
   }
 
@@ -84,6 +92,11 @@
     position: static;
     flex-shrink: 0;
     align-self: stretch;
+    align-items: center;
+  }
+
+  .logo {
+    align-self: flex-start;
   }
 }
 
@@ -188,14 +201,25 @@ button.mediaOverlay {
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
 }
 
+.overlayPlayPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: transparent;
+}
+
 .overlayPlayLabel {
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: 0.14em;
+  font-family: "OffBit Dot", sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  font-synthesis: none;
+  text-transform: uppercase;
+  letter-spacing: calc(2 / 100 * 1em);
+  line-height: 1.12;
   color: #fff;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
 }
 
 .controlsDock {
@@ -211,7 +235,14 @@ button.mediaOverlay {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+  opacity: 1;
+  pointer-events: auto;
   transition: opacity 0.2s ease;
+}
+
+.controlsDockHidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .controlsBar {
@@ -231,13 +262,10 @@ button.mediaOverlay {
     opacity: 1;
     pointer-events: auto;
   }
-}
 
-/* Always show controls on touch devices */
-@media (hover: none), (pointer: coarse) {
-  .controlsDock {
-    opacity: 1;
-    pointer-events: auto;
+  .controlsDockHidden {
+    opacity: 0;
+    pointer-events: none;
   }
 }
 
