@@ -196,13 +196,26 @@ button.mediaOverlay {
 .timeline {
   flex: 1;
   min-width: 0;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.timelineTrack {
+  position: relative;
+  width: 100%;
   height: 2px;
   background: rgba(255, 255, 255, 0.22);
-  cursor: pointer;
   border-radius: 1px;
 }
 
 .timeline:focus-visible {
+  outline: none;
+}
+
+.timeline:focus-visible .timelineTrack {
   outline: 1px solid rgba(255, 255, 255, 0.45);
   outline-offset: 3px;
 }
@@ -212,6 +225,7 @@ button.mediaOverlay {
   background: rgba(255, 255, 255, 0.82);
   border-radius: 1px;
   pointer-events: none;
+  will-change: width;
 }
 
 .controlButton {
@@ -219,12 +233,16 @@ button.mediaOverlay {
   align-items: center;
   justify-content: center;
   margin: 0;
-  padding: 4px;
+  padding: 10px;
+  min-width: 44px;
+  min-height: 44px;
   border: 0;
   background: transparent;
   color: #fff;
   opacity: 0.65;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: opacity 0.2s ease;
 }
 

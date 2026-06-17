@@ -189,6 +189,8 @@ export function IntroVideo() {
   const loadCompleteRef = useRef(false);
   const lastPlayAttemptRef = useRef(0);
   const hasStartedPlaybackRef = useRef(false);
+  const unlockMutedOnFirstPlayRef = useRef(false);
+  const isScrubbingRef = useRef(false);
   const startPlaybackFromGestureRef = useRef<() => void>(() => {});
 
   const [isTouch, setIsTouch] = useState(false);
@@ -239,9 +241,27 @@ export function IntroVideo() {
     };
   }, [stream]);
 
+  const syncPlaybackState = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    setIsPlaying(!video.paused);
+    setIsMuted(video.muted);
+  };
+
+  const resumePlayback = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    markVideoInline(video);
+    void video.play().catch(() => {
+      syncPlaybackState();
+    });
+  };
+
   startPlaybackFromGestureRef.current = () => {
     const video = videoRef.current;
-    if (!video || phaseRef.current === "playing") return;
+    if (!video || phaseRef.current !== "loading") return;
 
     const now = Date.now();
     if (now - lastPlayAttemptRef.current < PLAY_RETRY_MS) return;
@@ -252,7 +272,14 @@ export function IntroVideo() {
     setShowPlayIcon(false);
 
     video.volume = 1;
-    video.muted = isTouch;
+
+    if (isTouch) {
+      video.muted = true;
+      unlockMutedOnFirstPlayRef.current = true;
+    } else {
+      video.muted = false;
+      unlockMutedOnFirstPlayRef.current = false;
+    }
 
     const playPromise = video.play();
     if (!playPromise) return;
@@ -260,6 +287,7 @@ export function IntroVideo() {
     playPromise.catch(() => {
       setPlayRequested(false);
       setShowPlayIcon(true);
+      unlockMutedOnFirstPlayRef.current = false;
     });
   };
 
@@ -270,45 +298,59 @@ export function IntroVideo() {
     const onPlaying = () => {
       hasStartedPlaybackRef.current = true;
       setPhase("playing");
-      setIsPlaying(true);
       setPlayRequested(false);
       setIsRebuffering(false);
       setShowPlayIcon(false);
 
-      if (isTouch && video.muted) {
+      if (unlockMutedOnFirstPlayRef.current) {
         video.muted = false;
         video.volume = 1;
+        unlockMutedOnFirstPlayRef.current = false;
       }
 
-      setIsMuted(video.muted);
+      syncPlaybackState();
     };
 
-    const onPause = () => setIsPlaying(false);
+    const onPause = () => {
+      syncPlaybackState();
+    };
+
     const onWaiting = () => {
       if (hasStartedPlaybackRef.current) {
         setIsRebuffering(true);
       }
     };
 
+    const onVolumeChange = () => {
+      setIsMuted(video.muted);
+    };
+
     video.addEventListener("playing", onPlaying);
     video.addEventListener("pause", onPause);
     video.addEventListener("waiting", onWaiting);
+    video.addEventListener("volumechange", onVolumeChange);
 
     return () => {
       video.removeEventListener("playing", onPlaying);
       video.removeEventListener("pause", onPause);
       video.removeEventListener("waiting", onWaiting);
+      video.removeEventListener("volumechange", onVolumeChange);
     };
-  }, [isTouch]);
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !touchReady) return;
 
+    const currentStream = getIntroStream(isTouch);
+
     loadStartedAtRef.current = Date.now();
     maxDisplayPercentRef.current = 0;
     loadCompleteRef.current = false;
-    video.load();
+
+    if (currentStream.kind !== "hls") {
+      video.load();
+    }
 
     const finishLoading = async () => {
       if (phaseRef.current !== "loading" || loadCompleteRef.current) return;
@@ -403,25 +445,49 @@ export function IntroVideo() {
 
   useEffect(() => {
     const video = videoRef.current;
+    if (!video || phase !== "playing") return;
+
+    let frameId = 0;
+
+    const tick = () => {
+      if (video.duration && Number.isFinite(video.duration) && !isScrubbingRef.current) {
+        setProgress(video.currentTime / video.duration);
+      }
+
+      frameId = window.requestAnimationFrame(tick);
+    };
+
+    frameId = window.requestAnimationFrame(tick);
+
+    const onSeeked = () => {
+      setIsRebuffering(false);
+      if (video.duration && Number.isFinite(video.duration)) {
+        setProgress(video.currentTime / video.duration);
+      }
+    };
+
+    video.addEventListener("seeked", onSeeked);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      video.removeEventListener("seeked", onSeeked);
+    };
+  }, [phase]);
+
+  useEffect(() => {
+    const video = videoRef.current;
     if (!video) return;
 
     const onTimeUpdate = () => {
-      if (!video.duration) return;
-      setProgress(video.currentTime / video.duration);
-
       if (phaseRef.current === "loading" || isRebuffering) {
         setLoadPercent(getMediaLoadPercent(video));
       }
     };
 
-    const onSeeked = () => setIsRebuffering(false);
-
     video.addEventListener("timeupdate", onTimeUpdate);
-    video.addEventListener("seeked", onSeeked);
 
     return () => {
       video.removeEventListener("timeupdate", onTimeUpdate);
-      video.removeEventListener("seeked", onSeeked);
     };
   }, [isRebuffering]);
 
@@ -438,27 +504,54 @@ export function IntroVideo() {
     const video = videoRef.current;
     if (!video) return;
 
-    if (video.paused) {
-      startPlaybackFromGestureRef.current();
+    if (!video.paused) {
+      video.pause();
       return;
     }
 
-    video.pause();
+    resumePlayback();
+  };
+
+  const seekToRatio = (ratio: number) => {
+    const video = videoRef.current;
+    if (!video || !video.duration || !Number.isFinite(video.duration)) return;
+
+    const clamped = Math.min(1, Math.max(0, ratio));
+    video.currentTime = clamped * video.duration;
+    setProgress(clamped);
   };
 
   const seekToPosition = (clientX: number) => {
-    const video = videoRef.current;
     const timeline = timelineRef.current;
-    if (!video || !timeline || !video.duration) return;
+    if (!timeline) return;
 
     const rect = timeline.getBoundingClientRect();
-    const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-    video.currentTime = ratio * video.duration;
-    setProgress(ratio);
+    if (rect.width <= 0) return;
+
+    seekToRatio((clientX - rect.left) / rect.width);
   };
 
-  const onTimelineClick = (event: React.MouseEvent<HTMLDivElement>) => {
+  const onTimelinePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+
+    isScrubbingRef.current = true;
+    event.currentTarget.setPointerCapture(event.pointerId);
     seekToPosition(event.clientX);
+  };
+
+  const onTimelinePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isScrubbingRef.current) return;
+
+    seekToPosition(event.clientX);
+  };
+
+  const onTimelinePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!isScrubbingRef.current) return;
+
+    isScrubbingRef.current = false;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
   };
 
   const onTimelineKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -480,14 +573,14 @@ export function IntroVideo() {
     const video = videoRef.current;
     if (!video) return;
 
-    const nextMuted = !video.muted;
-    video.muted = nextMuted;
-    setIsMuted(nextMuted);
+    unlockMutedOnFirstPlayRef.current = false;
+    video.muted = !video.muted;
 
-    if (!nextMuted) {
+    if (!video.muted) {
       video.volume = 1;
-      void video.play();
     }
+
+    setIsMuted(video.muted);
   };
 
   const toggleFullscreen = async () => {
@@ -569,13 +662,18 @@ export function IntroVideo() {
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={Math.round(progress * 100)}
-            onClick={onTimelineClick}
+            onPointerDown={onTimelinePointerDown}
+            onPointerMove={onTimelinePointerMove}
+            onPointerUp={onTimelinePointerUp}
+            onPointerCancel={onTimelinePointerUp}
             onKeyDown={onTimelineKeyDown}
           >
-            <div
-              className={styles.timelineProgress}
-              style={{ width: `${progress * 100}%` }}
-            />
+            <div className={styles.timelineTrack}>
+              <div
+                className={styles.timelineProgress}
+                style={{ width: `${progress * 100}%` }}
+              />
+            </div>
           </div>
 
           <div className={styles.controlGroup}>
