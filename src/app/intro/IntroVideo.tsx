@@ -352,26 +352,13 @@ export function IntroVideo() {
     video.muted = true;
     video.load();
 
-    const finishLoading = async () => {
+    const finishLoading = () => {
       if (phaseRef.current !== "loading" || loadCompleteRef.current) return;
 
       loadCompleteRef.current = true;
       maxDisplayPercentRef.current = 100;
       setLoadPercent(100);
       setShowPlayIcon(true);
-
-      if (isTouchRef.current) return;
-
-      markVideoInline(video);
-      video.volume = 1;
-      video.muted = false;
-      setIsMuted(false);
-
-      try {
-        await video.play();
-      } catch {
-        setShowPlayIcon(true);
-      }
     };
 
     const syncLoadState = () => {
@@ -391,7 +378,7 @@ export function IntroVideo() {
       setLoadPercent(nextPercent);
 
       if (!loadCompleteRef.current && ready) {
-        void finishLoading();
+        finishLoading();
       }
     };
 
@@ -665,13 +652,17 @@ export function IntroVideo() {
         loop
         playsInline
         preload="auto"
+        poster=""
         aria-label="Vid. promo film"
       />
+      {showLoadOverlay ? (
+        <div className={styles.loadCurtain} aria-hidden />
+      ) : null}
       {showLoadOverlay ? (
         <button
           ref={overlayRef}
           type="button"
-          className={styles.mediaOverlay}
+          className={`${styles.mediaOverlay} ${styles.loadOverlay}`}
           aria-label={overlayShowsPlay ? "Play video" : `Loading video ${loadPercent}%`}
         >
           <OverlayStatus>
