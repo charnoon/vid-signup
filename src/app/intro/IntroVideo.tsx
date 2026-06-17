@@ -1,16 +1,17 @@
 "use client";
 
-import Hls from "hls.js";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   getIntroPoster,
-  getIntroStream,
-  supportsNativeHls,
+  getIntroVideoSrc,
+  INTRO_VIDEO_HEIGHT,
+  INTRO_VIDEO_WIDTH,
+  shouldUseMobileIntro,
 } from "./intro-stream";
 import styles from "./intro.module.css";
 
-const LOAD_RAMP_MS = 8_000;
+const LOAD_RAMP_MS = 2_500;
 const PLAY_RETRY_MS = 400;
 
 type IntroPhase = "loading" | "playing";
@@ -159,7 +160,7 @@ function getTimedLoadPercent(startedAt: number) {
 }
 
 function isMediaReady(video: HTMLVideoElement) {
-  return video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA;
+  return video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
 }
 
 function isTouchDevice() {
@@ -194,7 +195,6 @@ export function IntroVideo() {
   const startPlaybackFromGestureRef = useRef<() => void>(() => {});
 
   const [isTouch, setIsTouch] = useState(false);
-  const [touchReady, setTouchReady] = useState(false);
   const [phase, setPhase] = useState<IntroPhase>("loading");
   const [loadPercent, setLoadPercent] = useState(0);
   const [showPlayIcon, setShowPlayIcon] = useState(false);
@@ -205,8 +205,8 @@ export function IntroVideo() {
   const [progress, setProgress] = useState(0);
   const [isRebuffering, setIsRebuffering] = useState(false);
 
-  const stream = useMemo(() => (touchReady ? getIntroStream() : null), [touchReady]);
-  const poster = useMemo(() => getIntroPoster(), [touchReady]);
+  const poster = useMemo(() => getIntroPoster(), []);
+  const [videoSrc, setVideoSrc] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -214,31 +214,8 @@ export function IntroVideo() {
 
   useEffect(() => {
     setIsTouch(isTouchDevice());
-    setTouchReady(true);
+    setVideoSrc(getIntroVideoSrc(shouldUseMobileIntro()));
   }, []);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !stream) return;
-
-    let hls: Hls | null = null;
-
-    if (stream.kind === "hls") {
-      if (supportsNativeHls(video)) {
-        video.src = stream.src;
-      } else if (Hls.isSupported()) {
-        hls = new Hls({ enableWorker: true });
-        hls.loadSource(stream.src);
-        hls.attachMedia(video);
-      } else {
-        video.src = stream.src;
-      }
-    }
-
-    return () => {
-      hls?.destroy();
-    };
-  }, [stream]);
 
   const syncPlaybackState = () => {
     const video = videoRef.current;
@@ -339,10 +316,7 @@ export function IntroVideo() {
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !touchReady) return;
-
-    const currentStream = getIntroStream();
-    if (!currentStream) return;
+    if (!video || !videoSrc) return;
 
     loadStartedAtRef.current = Date.now();
     maxDisplayPercentRef.current = 0;
@@ -420,7 +394,7 @@ export function IntroVideo() {
       video.removeEventListener("canplaythrough", onMediaEvent);
       video.removeEventListener("progress", onMediaEvent);
     };
-  }, [isTouch, touchReady]);
+  }, [isTouch, videoSrc]);
 
   useEffect(() => {
     const overlay = overlayRef.current;
@@ -604,14 +578,21 @@ export function IntroVideo() {
   const overlayShowsPlay = showPlayIcon && !playRequested;
 
   return (
-    <div ref={stageRef} className={styles.videoStage}>
+    <div
+      ref={stageRef}
+      className={styles.videoStage}
+      style={poster ? { backgroundImage: `url("${poster}")` } : undefined}
+    >
       <video
         ref={videoRef}
         className={styles.video}
-        poster={poster ?? undefined}
+        src={videoSrc}
+        width={INTRO_VIDEO_WIDTH}
+        height={INTRO_VIDEO_HEIGHT}
+        poster={poster}
         loop
         playsInline
-        preload="metadata"
+        preload="auto"
         aria-label="Vid. promo film"
       />
       {showLoadOverlay ? (
