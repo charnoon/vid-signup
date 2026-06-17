@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { IBM_Plex_Mono } from "next/font/google";
 
 import { IntroVideo } from "./IntroVideo";
 import {
@@ -6,6 +7,12 @@ import {
   INTRO_VIDEO_MOBILE_SRC,
 } from "./intro-stream";
 import styles from "./intro.module.css";
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-ibm-plex-mono",
+});
 
 export const metadata: Metadata = {
   title: "Vid.",
@@ -17,7 +24,7 @@ export const dynamic = "force-dynamic";
 
 export default function IntroPage() {
   return (
-    <main className={styles.page}>
+    <main className={`${styles.page} ${ibmPlexMono.variable}`}>
       <link
         rel="preload"
         as="video"
@@ -45,7 +52,10 @@ export default function IntroPage() {
             />
           </a>
           <a className={styles.enquireLink} href="mailto:info@vid.global">
-            Enquire
+            <span className={styles.enquireLinkText}>Enquire</span>
+            <span className={styles.enquireLinkArrow} aria-hidden="true">
+              →
+            </span>
           </a>
         </div>
         <IntroVideo />
