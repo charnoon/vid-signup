@@ -57,7 +57,7 @@
   flex-shrink: 0;
   pointer-events: auto;
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0;
   color: #fff;
   font-family: var(--intro-display);
@@ -68,11 +68,9 @@
   letter-spacing: calc(2 / 100 * 1em);
   line-height: 1.12;
   text-decoration: none;
-  transform: translateY(5px);
 }
 
-.enquireLinkText,
-.enquireLinkArrow {
+.enquireLinkText {
   font-family: inherit;
   font-size: inherit;
   font-weight: inherit;
@@ -82,8 +80,13 @@
 }
 
 .enquireLinkArrow {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 1em;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1;
+  color: inherit;
   display: inline-block;
-  transform: translateY(1px);
   opacity: 0;
   max-width: 0;
   margin-left: 0;
@@ -169,8 +172,6 @@
   line-height: 0;
   background: #000 center / contain no-repeat;
   contain: layout size style;
-  outline: 1px solid rgba(255, 255, 255, 0.85);
-  outline-offset: 0;
 }
 
 .video {
@@ -229,6 +230,16 @@ button.mediaOverlay {
   font-variant-numeric: tabular-nums;
   color: #fff;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
+}
+
+.overlayPlayPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: transparent;
 }
 
 .overlayPlayLabel {
