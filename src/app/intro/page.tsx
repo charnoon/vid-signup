@@ -33,19 +33,19 @@ export default function IntroPage() {
         type="video/mp4"
         media="(max-width: 768px)"
       />
-      <div className={styles.topBar}>
-        <div className={styles.logo}>
-          {/* eslint-disable-next-line @next/next/no-img-element -- local SVG asset */}
-          <img
-            src="/logo.svg"
-            alt="Vid."
-            width={152}
-            height={71}
-            decoding="async"
-          />
-        </div>
-      </div>
       <div className={styles.content}>
+        <div className={styles.topBar}>
+          <div className={styles.logo}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- local SVG asset */}
+            <img
+              src="/logo.svg"
+              alt="Vid."
+              width={152}
+              height={71}
+              decoding="async"
+            />
+          </div>
+        </div>
         <IntroVideo />
       </div>
     </main>
