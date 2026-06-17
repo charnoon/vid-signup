@@ -103,34 +103,68 @@ function ExitFullscreenIcon() {
   );
 }
 
-function getLoadPercent(video: HTMLVideoElement) {
-  let readinessPercent = 0;
+const LOAD_RAMP_MS = 14_000;
+const READY_FALLBACK_MS = 16_000;
 
-  if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
-    readinessPercent = 100;
-  } else if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-    readinessPercent = 92;
-  } else if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-    readinessPercent = 68;
-  } else if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
-    readinessPercent = 36;
-  } else {
-    readinessPercent = 12;
+function getBufferedPercent(video: HTMLVideoElement) {
+  if (!video.duration || !Number.isFinite(video.duration) || video.duration <= 0) {
+    return 0;
   }
 
-  if (!video.duration || !Number.isFinite(video.duration) || video.buffered.length === 0) {
-    return readinessPercent;
+  if (video.buffered.length === 0) {
+    return 0;
   }
 
-  const bufferedPercent = Math.round(
-    (video.buffered.end(video.buffered.length - 1) / video.duration) * 100,
-  );
+  let bufferedEnd = 0;
+  for (let index = 0; index < video.buffered.length; index += 1) {
+    bufferedEnd = Math.max(bufferedEnd, video.buffered.end(index));
+  }
 
-  return Math.min(100, Math.max(readinessPercent, bufferedPercent));
+  return Math.min(100, Math.round((bufferedEnd / video.duration) * 100));
 }
 
-function isReadyToPlay(video: HTMLVideoElement) {
-  return video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA;
+function getReadinessPercent(video: HTMLVideoElement) {
+  if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
+    return 100;
+  }
+
+  if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+    return 85;
+  }
+
+  if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+    return 60;
+  }
+
+  if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+    return 30;
+  }
+
+  return 0;
+}
+
+function getMediaLoadPercent(video: HTMLVideoElement) {
+  return Math.min(100, Math.max(getReadinessPercent(video), getBufferedPercent(video)));
+}
+
+function getTimedLoadPercent(startedAt: number) {
+  const elapsed = Date.now() - startedAt;
+  const progress = Math.min(1, elapsed / LOAD_RAMP_MS);
+  const eased = 1 - (1 - progress) ** 3;
+
+  return Math.floor(eased * 100);
+}
+
+function canShowPlayPrompt(video: HTMLVideoElement) {
+  if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+    return true;
+  }
+
+  if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+    return true;
+  }
+
+  return video.readyState >= HTMLMediaElement.HAVE_METADATA && video.buffered.length > 0;
 }
 
 export function IntroVideo() {
@@ -138,6 +172,8 @@ export function IntroVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const phaseRef = useRef<IntroPhase>("buffering");
+  const loadStartedAtRef = useRef(0);
+  const maxDisplayPercentRef = useRef(0);
 
   const [phase, setPhase] = useState<IntroPhase>("buffering");
   const [loadPercent, setLoadPercent] = useState(0);
@@ -155,21 +191,39 @@ export function IntroVideo() {
     const video = videoRef.current;
     if (!video) return;
 
+    loadStartedAtRef.current = Date.now();
+    maxDisplayPercentRef.current = 0;
+    video.load();
+
     const syncLoadState = () => {
-      setLoadPercent(getLoadPercent(video));
-
       if (phaseRef.current !== "buffering") return;
-      if (!isReadyToPlay(video)) return;
 
-      setLoadPercent(100);
-      setPhase("ready");
+      const mediaPercent = getMediaLoadPercent(video);
+      const timedPercent = getTimedLoadPercent(loadStartedAtRef.current);
+      const elapsed = Date.now() - loadStartedAtRef.current;
+      const canFinish = canShowPlayPrompt(video) || elapsed >= READY_FALLBACK_MS;
+
+      let nextPercent = Math.max(maxDisplayPercentRef.current, mediaPercent, timedPercent);
+
+      if (!canFinish) {
+        nextPercent = Math.min(nextPercent, 99);
+      } else {
+        nextPercent = 100;
+      }
+
+      maxDisplayPercentRef.current = nextPercent;
+      setLoadPercent(nextPercent);
+
+      if (canFinish && nextPercent >= 100) {
+        setPhase("ready");
+      }
     };
 
     const onMediaEvent = () => {
       syncLoadState();
     };
 
-    const pollId = window.setInterval(syncLoadState, 200);
+    const pollId = window.setInterval(syncLoadState, 100);
 
     video.addEventListener("loadstart", onMediaEvent);
     video.addEventListener("loadedmetadata", onMediaEvent);
@@ -177,6 +231,8 @@ export function IntroVideo() {
     video.addEventListener("canplay", onMediaEvent);
     video.addEventListener("canplaythrough", onMediaEvent);
     video.addEventListener("progress", onMediaEvent);
+    video.addEventListener("stalled", onMediaEvent);
+    video.addEventListener("suspend", onMediaEvent);
 
     syncLoadState();
 
@@ -188,6 +244,8 @@ export function IntroVideo() {
       video.removeEventListener("canplay", onMediaEvent);
       video.removeEventListener("canplaythrough", onMediaEvent);
       video.removeEventListener("progress", onMediaEvent);
+      video.removeEventListener("stalled", onMediaEvent);
+      video.removeEventListener("suspend", onMediaEvent);
     };
   }, []);
 
@@ -201,14 +259,14 @@ export function IntroVideo() {
       if (!video.duration) return;
       setProgress(video.currentTime / video.duration);
       if (phase === "playing") {
-        setLoadPercent(getLoadPercent(video));
+        setLoadPercent(getMediaLoadPercent(video));
       }
     };
     const onWaiting = () => setIsRebuffering(true);
     const onPlaying = () => {
       setIsRebuffering(false);
       setIsMuted(video.muted);
-      setLoadPercent(getLoadPercent(video));
+      setLoadPercent(getMediaLoadPercent(video));
     };
     const onSeeked = () => setIsRebuffering(false);
 
