@@ -12,9 +12,6 @@
 
 .mark {
   display: block;
-  width: auto;
-  height: auto;
-  max-width: none;
   aspect-ratio: 151.58 / 70.97;
   object-fit: contain;
   flex-shrink: 0;

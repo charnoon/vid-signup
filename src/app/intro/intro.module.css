@@ -47,8 +47,10 @@
   pointer-events: auto;
 }
 
-.logoMark {
+.logo .logoMark {
   height: var(--intro-logo-height);
+  width: auto;
+  max-width: none;
   filter: brightness(0) invert(1);
 }
 
