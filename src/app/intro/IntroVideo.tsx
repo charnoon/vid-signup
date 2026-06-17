@@ -6,6 +6,8 @@ import styles from "./intro.module.css";
 
 const PROMO_SRC = "/assets/intro/vid-intro-promo.mp4";
 const PROMO_POSTER = "/assets/intro/vid-intro-promo-poster.jpg";
+const LOAD_RAMP_MS = 8_000;
+const PLAY_RETRY_MS = 400;
 
 type IntroPhase = "loading" | "playing";
 
@@ -103,8 +105,6 @@ function ExitFullscreenIcon() {
   );
 }
 
-const LOAD_RAMP_MS = 8_000;
-
 function getBufferedPercent(video: HTMLVideoElement) {
   if (!video.duration || !Number.isFinite(video.duration) || video.duration <= 0) {
     return 0;
@@ -177,113 +177,103 @@ function markVideoInline(video: HTMLVideoElement) {
 export function IntroVideo() {
   const stageRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const overlayRef = useRef<HTMLButtonElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const phaseRef = useRef<IntroPhase>("loading");
   const loadStartedAtRef = useRef(0);
   const maxDisplayPercentRef = useRef(0);
-  const finishingLoadRef = useRef(false);
   const loadCompleteRef = useRef(false);
+  const lastPlayAttemptRef = useRef(0);
+  const [isTouch, setIsTouch] = useState(false);
+  const [touchReady, setTouchReady] = useState(false);
 
   const [phase, setPhase] = useState<IntroPhase>("loading");
   const [loadPercent, setLoadPercent] = useState(0);
-  const [awaitingPlay, setAwaitingPlay] = useState(false);
+  const [showPlayIcon, setShowPlayIcon] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isRebuffering, setIsRebuffering] = useState(false);
-  const playFromUserGestureRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     phaseRef.current = phase;
   }, [phase]);
 
-  playFromUserGestureRef.current = () => {
+  useEffect(() => {
+    setIsTouch(isTouchDevice());
+    setTouchReady(true);
+  }, []);
+
+  const startPlaybackFromGestureRef = useRef<() => void>(() => {});
+
+  startPlaybackFromGestureRef.current = () => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || phaseRef.current === "playing") return;
 
-    markVideoInline(video);
-    finishingLoadRef.current = true;
-    setAwaitingPlay(false);
-
-    const markPlaying = (muted: boolean) => {
-      setPhase("playing");
-      setIsPlaying(true);
-      setIsMuted(muted);
-      setAwaitingPlay(false);
-    };
-
-    // Start muted inside the gesture — required for reliable mobile Chrome playback.
-    video.volume = 1;
-    video.muted = true;
-
-    const playPromise = video.play();
-    if (!playPromise) {
-      video.muted = false;
-      markPlaying(false);
-      return;
-    }
-
-    playPromise
-      .then(() => {
-        video.muted = false;
-        video.volume = 1;
-        markPlaying(false);
-      })
-      .catch(() => {
-        video.muted = false;
-        video.volume = 1;
-        video
-          .play()
-          .then(() => markPlaying(false))
-          .catch(() => {
-            finishingLoadRef.current = false;
-            setAwaitingPlay(true);
-            setIsPlaying(false);
-          });
-      });
-  };
-
-  const attemptAutoplay = async () => {
-    const video = videoRef.current;
-    if (!video) return false;
+    const now = Date.now();
+    if (now - lastPlayAttemptRef.current < PLAY_RETRY_MS) return;
+    lastPlayAttemptRef.current = now;
 
     markVideoInline(video);
     video.volume = 1;
     video.muted = false;
 
-    try {
-      await video.play();
-      setAwaitingPlay(false);
-      setPhase("playing");
-      setIsPlaying(true);
-      setIsMuted(false);
-      return true;
-    } catch {
-      try {
-        video.muted = true;
-        await video.play();
-        setAwaitingPlay(false);
-        setPhase("playing");
-        setIsPlaying(true);
-        setIsMuted(true);
-        return true;
-      } catch {
-        setIsPlaying(false);
-        return false;
-      }
-    }
+    const playPromise = video.play();
+    if (!playPromise) return;
+
+    playPromise.catch(() => {
+      if (!video.paused) return;
+
+      video.muted = true;
+      const mutedPromise = video.play();
+      if (!mutedPromise) return;
+
+      mutedPromise.catch(() => {
+        setShowPlayIcon(true);
+      });
+    });
   };
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
+    const onPlay = () => {
+      setPhase("playing");
+      setIsPlaying(true);
+      setShowPlayIcon(false);
+    };
+
+    const onPlaying = () => {
+      setIsRebuffering(false);
+      setIsMuted(video.muted);
+    };
+
+    const onPause = () => setIsPlaying(false);
+
+    video.addEventListener("play", onPlay);
+    video.addEventListener("playing", onPlaying);
+    video.addEventListener("pause", onPause);
+
+    return () => {
+      video.removeEventListener("play", onPlay);
+      video.removeEventListener("playing", onPlaying);
+      video.removeEventListener("pause", onPause);
+    };
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !touchReady) return;
+
     loadStartedAtRef.current = Date.now();
     maxDisplayPercentRef.current = 0;
-    finishingLoadRef.current = false;
     loadCompleteRef.current = false;
-    video.load();
+
+    if (!isTouch) {
+      video.load();
+    }
 
     const finishLoading = async () => {
       if (phaseRef.current !== "loading" || loadCompleteRef.current) return;
@@ -291,17 +281,25 @@ export function IntroVideo() {
       loadCompleteRef.current = true;
       maxDisplayPercentRef.current = 100;
       setLoadPercent(100);
+      setShowPlayIcon(true);
 
-      if (isTouchDevice()) {
-        setAwaitingPlay(true);
+      if (isTouch) return;
+
+      markVideoInline(video);
+      video.volume = 1;
+      video.muted = false;
+
+      try {
+        await video.play();
         return;
-      }
-
-      finishingLoadRef.current = true;
-      const played = await attemptAutoplay();
-      if (!played) {
-        finishingLoadRef.current = false;
-        setAwaitingPlay(true);
+      } catch {
+        try {
+          video.muted = true;
+          await video.play();
+          setIsMuted(true);
+        } catch {
+          setShowPlayIcon(true);
+        }
       }
     };
 
@@ -351,14 +349,29 @@ export function IntroVideo() {
       video.removeEventListener("canplaythrough", onCanPlay);
       video.removeEventListener("progress", onMediaEvent);
     };
-  }, []);
+  }, [isTouch, touchReady]);
+
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    if (!overlay || phase !== "loading") return;
+
+    const onActivate = () => {
+      startPlaybackFromGestureRef.current();
+    };
+
+    overlay.addEventListener("touchstart", onActivate, { passive: true });
+    overlay.addEventListener("click", onActivate);
+
+    return () => {
+      overlay.removeEventListener("touchstart", onActivate);
+      overlay.removeEventListener("click", onActivate);
+    };
+  }, [phase]);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    const onPlay = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
     const onTimeUpdate = () => {
       if (!video.duration) return;
       setProgress(video.currentTime / video.duration);
@@ -374,16 +387,12 @@ export function IntroVideo() {
     };
     const onSeeked = () => setIsRebuffering(false);
 
-    video.addEventListener("play", onPlay);
-    video.addEventListener("pause", onPause);
     video.addEventListener("timeupdate", onTimeUpdate);
     video.addEventListener("waiting", onWaiting);
     video.addEventListener("playing", onPlaying);
     video.addEventListener("seeked", onSeeked);
 
     return () => {
-      video.removeEventListener("play", onPlay);
-      video.removeEventListener("pause", onPause);
       video.removeEventListener("timeupdate", onTimeUpdate);
       video.removeEventListener("waiting", onWaiting);
       video.removeEventListener("playing", onPlaying);
@@ -400,19 +409,12 @@ export function IntroVideo() {
     return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
   }, []);
 
-  const onPlayOverlayActivate = (event: React.PointerEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    playFromUserGestureRef.current();
-  };
-
-  const showPlayPrompt = phase === "loading" && (awaitingPlay || loadPercent >= 100);
-
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
 
     if (video.paused) {
-      playFromUserGestureRef.current();
+      startPlaybackFromGestureRef.current();
       return;
     }
 
@@ -484,37 +486,36 @@ export function IntroVideo() {
     webkitVideo.webkitEnterFullscreen?.();
   };
 
+  const overlayShowsPlay = showPlayIcon || loadPercent >= 100;
+
   return (
     <div ref={stageRef} className={styles.videoStage}>
       <video
         ref={videoRef}
         className={styles.video}
-        src={PROMO_SRC}
         poster={PROMO_POSTER}
         loop
         playsInline
-        preload="auto"
+        preload="metadata"
         aria-label="Vid. promo film"
-      />
+      >
+        <source src={PROMO_SRC} type="video/mp4" />
+      </video>
       {phase === "loading" ? (
-        showPlayPrompt ? (
-          <button
-            type="button"
-            className={styles.mediaOverlay}
-            onPointerDown={onPlayOverlayActivate}
-            aria-label="Play video"
-          >
-            <ViewfinderFrame>
+        <button
+          ref={overlayRef}
+          type="button"
+          className={styles.mediaOverlay}
+          aria-label={overlayShowsPlay ? "Play video" : `Loading video ${loadPercent}%`}
+        >
+          <ViewfinderFrame>
+            {overlayShowsPlay ? (
               <PlayIcon className={styles.viewfinderPlay} />
-            </ViewfinderFrame>
-          </button>
-        ) : (
-          <div className={styles.mediaOverlay} role="status" aria-label="Loading video">
-            <ViewfinderFrame>
+            ) : (
               <span className={styles.viewfinderPercent}>{loadPercent}</span>
-            </ViewfinderFrame>
-          </div>
-        )
+            )}
+          </ViewfinderFrame>
+        </button>
       ) : null}
       {phase === "playing" && isRebuffering ? (
         <div className={styles.mediaOverlay} role="status" aria-label="Buffering video">
