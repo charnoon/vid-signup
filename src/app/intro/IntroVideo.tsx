@@ -16,16 +16,8 @@ const PLAY_RETRY_MS = 400;
 
 type IntroPhase = "loading" | "playing";
 
-function ViewfinderFrame({ children }: { children: ReactNode }) {
-  return (
-    <div className={styles.viewfinderFrame}>
-      <span className={styles.viewfinderCorner} data-corner="tl" aria-hidden />
-      <span className={styles.viewfinderCorner} data-corner="tr" aria-hidden />
-      <span className={styles.viewfinderCorner} data-corner="bl" aria-hidden />
-      <span className={styles.viewfinderCorner} data-corner="br" aria-hidden />
-      <div className={styles.viewfinderCenter}>{children}</div>
-    </div>
-  );
+function OverlayStatus({ children }: { children: ReactNode }) {
+  return <div className={styles.overlayStatus}>{children}</div>;
 }
 
 function PlayIcon({ className }: { className?: string }) {
@@ -585,7 +577,7 @@ export function IntroVideo() {
     >
       <video
         ref={videoRef}
-        className={styles.video}
+        className={`${styles.video} ${phase === "playing" ? styles.videoVisible : ""}`}
         src={videoSrc}
         width={INTRO_VIDEO_WIDTH}
         height={INTRO_VIDEO_HEIGHT}
@@ -602,76 +594,78 @@ export function IntroVideo() {
           className={styles.mediaOverlay}
           aria-label={overlayShowsPlay ? "Play video" : `Loading video ${loadPercent}%`}
         >
-          <ViewfinderFrame>
+          <OverlayStatus>
             {overlayShowsPlay ? (
-              <PlayIcon className={styles.viewfinderPlay} />
+              <PlayIcon className={styles.overlayPlay} />
             ) : (
-              <span className={styles.viewfinderPercent}>{loadPercent}</span>
+              <span className={styles.overlayPercent}>{loadPercent}</span>
             )}
-          </ViewfinderFrame>
+          </OverlayStatus>
         </button>
       ) : null}
       {phase === "playing" && isRebuffering ? (
         <div className={styles.mediaOverlay} role="status" aria-label="Buffering video">
-          <ViewfinderFrame>
-            <span className={styles.viewfinderPercent}>{loadPercent}</span>
-          </ViewfinderFrame>
+          <OverlayStatus>
+            <span className={styles.overlayPercent}>{loadPercent}</span>
+          </OverlayStatus>
         </div>
       ) : null}
       {phase === "playing" ? (
-        <div className={styles.controlsBar}>
-          <button
-            type="button"
-            className={styles.controlButton}
-            onClick={togglePlay}
-            aria-pressed={isPlaying}
-            aria-label={isPlaying ? "Pause video" : "Play video"}
-          >
-            {isPlaying ? <PauseIcon /> : <PlayIcon />}
-          </button>
+        <div className={styles.controlsDock}>
+          <div className={styles.controlsBar}>
+            <button
+              type="button"
+              className={styles.controlButton}
+              onClick={togglePlay}
+              aria-pressed={isPlaying}
+              aria-label={isPlaying ? "Pause video" : "Play video"}
+            >
+              {isPlaying ? <PauseIcon /> : <PlayIcon />}
+            </button>
 
-          <div
-            ref={timelineRef}
-            className={styles.timeline}
-            role="slider"
-            tabIndex={0}
-            aria-label="Video progress"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(progress * 100)}
-            onPointerDown={onTimelinePointerDown}
-            onPointerMove={onTimelinePointerMove}
-            onPointerUp={onTimelinePointerUp}
-            onPointerCancel={onTimelinePointerUp}
-            onKeyDown={onTimelineKeyDown}
-          >
-            <div className={styles.timelineTrack}>
-              <div
-                className={styles.timelineProgress}
-                style={{ width: `${progress * 100}%` }}
-              />
+            <div
+              ref={timelineRef}
+              className={styles.timeline}
+              role="slider"
+              tabIndex={0}
+              aria-label="Video progress"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(progress * 100)}
+              onPointerDown={onTimelinePointerDown}
+              onPointerMove={onTimelinePointerMove}
+              onPointerUp={onTimelinePointerUp}
+              onPointerCancel={onTimelinePointerUp}
+              onKeyDown={onTimelineKeyDown}
+            >
+              <div className={styles.timelineTrack}>
+                <div
+                  className={styles.timelineProgress}
+                  style={{ width: `${progress * 100}%` }}
+                />
+              </div>
             </div>
-          </div>
 
-          <div className={styles.controlGroup}>
-            <button
-              type="button"
-              className={styles.controlButton}
-              onClick={toggleMute}
-              aria-pressed={isMuted}
-              aria-label={isMuted ? "Unmute video" : "Mute video"}
-            >
-              {isMuted ? <MuteIcon /> : <UnmuteIcon />}
-            </button>
-            <button
-              type="button"
-              className={styles.controlButton}
-              onClick={() => void toggleFullscreen()}
-              aria-pressed={isFullscreen}
-              aria-label={isFullscreen ? "Exit full screen" : "Full screen"}
-            >
-              {isFullscreen ? <ExitFullscreenIcon /> : <FullscreenIcon />}
-            </button>
+            <div className={styles.controlGroup}>
+              <button
+                type="button"
+                className={styles.controlButton}
+                onClick={toggleMute}
+                aria-pressed={isMuted}
+                aria-label={isMuted ? "Unmute video" : "Mute video"}
+              >
+                {isMuted ? <MuteIcon /> : <UnmuteIcon />}
+              </button>
+              <button
+                type="button"
+                className={styles.controlButton}
+                onClick={() => void toggleFullscreen()}
+                aria-pressed={isFullscreen}
+                aria-label={isFullscreen ? "Exit full screen" : "Full screen"}
+              >
+                {isFullscreen ? <ExitFullscreenIcon /> : <FullscreenIcon />}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}

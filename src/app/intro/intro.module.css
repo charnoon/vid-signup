@@ -41,7 +41,7 @@
   .content {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     gap: var(--intro-logo-gap);
     transform: translateY(
       calc(-0.5 * (var(--intro-logo-height) + var(--intro-logo-gap)))
@@ -51,6 +51,7 @@
   .topBar {
     position: static;
     flex-shrink: 0;
+    align-self: stretch;
   }
 }
 
@@ -110,7 +111,13 @@
   min-height: 100%;
   object-fit: contain;
   border-radius: 8px;
-  background: #000;
+  background: transparent;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.videoVisible {
+  opacity: 1;
 }
 
 .mediaOverlay {
@@ -124,7 +131,7 @@
   margin: 0;
   padding: 0;
   border: 0;
-  background: #000;
+  background: transparent;
   color: #fff;
   cursor: default;
 }
@@ -135,56 +142,13 @@ button.mediaOverlay {
   -webkit-tap-highlight-color: transparent;
 }
 
-.viewfinderFrame {
-  position: relative;
-  width: 92px;
-  height: 52px;
-}
-
-.viewfinderCorner {
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  border: 1px solid #fff;
-}
-
-.viewfinderCorner[data-corner="tl"] {
-  top: 0;
-  left: 0;
-  border-right: 0;
-  border-bottom: 0;
-}
-
-.viewfinderCorner[data-corner="tr"] {
-  top: 0;
-  right: 0;
-  border-left: 0;
-  border-bottom: 0;
-}
-
-.viewfinderCorner[data-corner="bl"] {
-  bottom: 0;
-  left: 0;
-  border-right: 0;
-  border-top: 0;
-}
-
-.viewfinderCorner[data-corner="br"] {
-  bottom: 0;
-  right: 0;
-  border-left: 0;
-  border-top: 0;
-}
-
-.viewfinderCenter {
-  position: absolute;
-  inset: 0;
+.overlayStatus {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.viewfinderPercent {
+.overlayPercent {
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   font-size: 11px;
   font-weight: 400;
@@ -192,36 +156,47 @@ button.mediaOverlay {
   letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
   color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
 }
 
-.viewfinderPlay {
+.overlayPlay {
   display: block;
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   margin-left: 2px;
-  opacity: 0.92;
+  opacity: 0.95;
+  filter: drop-shadow(0 1px 8px rgba(0, 0, 0, 0.65));
 }
 
-.controlsBar {
+.controlsDock {
   grid-area: 1 / 1;
   align-self: end;
   justify-self: stretch;
   z-index: 3;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 10px 10px;
+  margin: 0 8px 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   transition: opacity 0.2s ease;
 }
 
+.controlsBar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+}
+
 @media (hover: hover) and (pointer: fine) {
-  .controlsBar {
+  .controlsDock {
     opacity: 0;
     pointer-events: none;
   }
 
-  .videoStage:hover .controlsBar,
-  .videoStage:focus-within .controlsBar {
+  .videoStage:hover .controlsDock,
+  .videoStage:focus-within .controlsDock {
     opacity: 1;
     pointer-events: auto;
   }
@@ -229,16 +204,23 @@ button.mediaOverlay {
 
 .controlGroup {
   display: flex;
-  gap: 10px;
+  gap: 20px;
   flex-shrink: 0;
 }
 
+.controlGroup .controlButton {
+  padding: 0;
+  min-width: 44px;
+  width: 44px;
+}
+
 .timeline {
-  flex: 1;
+  flex: 1 1 0;
   min-width: 0;
   height: 28px;
   display: flex;
   align-items: center;
+  margin-inline: 2px 20px;
   cursor: pointer;
   touch-action: none;
 }
@@ -279,7 +261,7 @@ button.mediaOverlay {
   border: 0;
   background: transparent;
   color: #fff;
-  opacity: 0.65;
+  opacity: 0.88;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -317,6 +299,11 @@ button.mediaOverlay {
   border-radius: 0;
 }
 
+.videoStage:fullscreen .controlsDock {
+  margin: 0 16px 20px;
+  padding: 4px 10px;
+}
+
 .videoStage:fullscreen .controlsBar {
-  margin: 0 20px 20px;
+  gap: 6px;
 }
