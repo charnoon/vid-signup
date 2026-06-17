@@ -1,4 +1,4 @@
-/* Aligned with signup sheet: OffBit-DotBold, light grey field, editorial uppercase */
+/* Aligned with signup sheet: TemporaryDisplay-Bold, light grey field, editorial uppercase */
 
 .legal {
   flex: 1;
@@ -13,7 +13,7 @@
   padding-right: calc(40px + env(safe-area-inset-right, 0px));
   background: #f8f8f8;
   color: #111;
-  font-family: "OffBit-DotBold", sans-serif;
+  font-family: var(--vid-display);
   font-size: 12pt;
   font-weight: normal;
   font-synthesis: none;

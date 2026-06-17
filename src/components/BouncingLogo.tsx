@@ -2,6 +2,8 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
+import { VID_LOGO_HEIGHT, VID_LOGO_SRC, VID_LOGO_WIDTH } from "@/lib/logo";
+import logoStyles from "@/styles/logo.module.css";
 import styles from "./BouncingLogo.module.css";
 
 const SPEED_PX_S = 148;
@@ -167,7 +169,14 @@ export function BouncingLogo() {
   return (
     <div ref={wrapRef} className={styles.bouncingLogo} aria-hidden>
       {/* eslint-disable-next-line @next/next/no-img-element -- local SVG asset */}
-      <img src="/logo.svg" alt="" width={96} height={45} decoding="async" />
+      <img
+        className={`${logoStyles.mark} ${styles.mark}`}
+        src={VID_LOGO_SRC}
+        alt=""
+        width={VID_LOGO_WIDTH}
+        height={VID_LOGO_HEIGHT}
+        decoding="async"
+      />
     </div>
   );
 }

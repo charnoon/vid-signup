@@ -1,0 +1,21 @@
+/* Shared Vid. logo — preserve SVG aspect ratio, never stretch. */
+.link {
+  line-height: 0;
+  flex: 0 0 auto;
+  width: fit-content;
+  max-width: fit-content;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: flex-start;
+  text-decoration: none;
+}
+
+.mark {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: none;
+  aspect-ratio: 151.58 / 70.97;
+  object-fit: contain;
+  flex-shrink: 0;
+}

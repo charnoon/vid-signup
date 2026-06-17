@@ -5,6 +5,8 @@ import {
   INTRO_VIDEO_DESKTOP_SRC,
   INTRO_VIDEO_MOBILE_SRC,
 } from "./intro-stream";
+import { VID_LOGO_HEIGHT, VID_LOGO_SRC, VID_LOGO_WIDTH } from "@/lib/logo";
+import logoStyles from "@/styles/logo.module.css";
 import styles from "./intro.module.css";
 
 export const metadata: Metadata = {
@@ -34,13 +36,14 @@ export default function IntroPage() {
       />
       <div className={styles.content}>
         <div className={styles.topBar}>
-          <a className={styles.logo} href="https://vid.global">
+          <a className={`${logoStyles.link} ${styles.logo}`} href="https://vid.global">
             {/* eslint-disable-next-line @next/next/no-img-element -- local SVG asset */}
             <img
-              src="/logo.svg"
+              className={`${logoStyles.mark} ${styles.logoMark}`}
+              src={VID_LOGO_SRC}
               alt="Vid."
-              width={152}
-              height={71}
+              width={VID_LOGO_WIDTH}
+              height={VID_LOGO_HEIGHT}
               decoding="async"
             />
           </a>

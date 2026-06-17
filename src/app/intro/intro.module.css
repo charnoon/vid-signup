@@ -4,7 +4,7 @@
   --intro-inset-inline: 8px;
   --intro-logo-height: clamp(11px, 2.7vw, 14px);
   --intro-logo-gap: 14px;
-  --intro-display: "TemporaryDisplay-Bold", sans-serif;
+  --intro-display: var(--vid-display);
   --intro-video-aspect: 1080 / 2250;
   --intro-video-max-height: min(
     90dvh,
@@ -44,13 +44,12 @@
 }
 
 .logo {
-  line-height: 0;
-  flex: 0 0 auto;
-  width: fit-content;
-  max-width: fit-content;
   pointer-events: auto;
-  display: block;
-  text-decoration: none;
+}
+
+.logoMark {
+  height: var(--intro-logo-height);
+  filter: brightness(0) invert(1);
 }
 
 .enquireLink {
@@ -125,20 +124,6 @@
     align-self: stretch;
     align-items: center;
   }
-
-  .logo {
-    align-self: flex-start;
-  }
-}
-
-.logo img {
-  display: block;
-  height: var(--intro-logo-height);
-  width: auto;
-  max-width: none;
-  aspect-ratio: 151.58 / 70.97;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
 }
 
 @media (min-width: 769px) {

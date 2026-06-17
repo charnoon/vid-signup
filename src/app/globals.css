@@ -1,20 +1,4 @@
 @font-face {
-  font-family: "OffBit Dot";
-  src: url("/assets/fonts/offbit/OffBit-DotBold.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "OffBit-DotBold";
-  src: url("/assets/fonts/offbit/OffBit-DotBold.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
   font-family: "TemporaryDisplay-Bold";
   src: url("/assets/fonts/TemporaryDisplay-Bold.otf") format("opentype");
   font-weight: normal;
@@ -25,6 +9,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --vid-display: "TemporaryDisplay-Bold", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
