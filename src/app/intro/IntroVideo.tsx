@@ -635,9 +635,7 @@ export function IntroVideo() {
   return (
     <div
       ref={stageRef}
-      className={`${styles.videoStage} ${
-        phase === "loading" ? styles.videoStageFrameOutline : ""
-      }`}
+      className={styles.videoStage}
       onMouseLeave={onStageMouseLeave}
       onPointerDown={onStagePointerDown}
     >

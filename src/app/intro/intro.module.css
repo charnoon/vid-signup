@@ -4,6 +4,7 @@
   --intro-inset-inline: 8px;
   --intro-logo-height: clamp(11px, 2.7vw, 14px);
   --intro-logo-gap: 14px;
+  --intro-display: "TemporaryDisplay-Bold", sans-serif;
   --intro-video-aspect: 1080 / 2250;
   --intro-video-max-height: min(
     90dvh,
@@ -59,14 +60,15 @@
   align-items: baseline;
   gap: 0;
   color: #fff;
-  font-family: "OffBit Dot", sans-serif;
-  font-size: 12px;
+  font-family: var(--intro-display);
+  font-size: 14px;
   font-weight: normal;
   font-synthesis: none;
   text-transform: uppercase;
   letter-spacing: calc(2 / 100 * 1em);
   line-height: 1.12;
   text-decoration: none;
+  transform: translateY(5px);
 }
 
 .enquireLinkText,
@@ -167,9 +169,6 @@
   line-height: 0;
   background: #000 center / contain no-repeat;
   contain: layout size style;
-}
-
-.videoStageFrameOutline {
   outline: 1px solid rgba(255, 255, 255, 0.85);
   outline-offset: 0;
 }
@@ -233,7 +232,7 @@ button.mediaOverlay {
 }
 
 .overlayPlayLabel {
-  font-family: "OffBit Dot", sans-serif;
+  font-family: var(--intro-display);
   font-size: 12px;
   font-weight: normal;
   font-synthesis: none;
