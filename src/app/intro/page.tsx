@@ -17,8 +17,8 @@ export default function IntroPage() {
           <img
             src="/logo.svg"
             alt="Vid."
-            width={96}
-            height={45}
+            width={152}
+            height={71}
             decoding="async"
           />
         </div>

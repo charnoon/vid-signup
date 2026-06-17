@@ -30,14 +30,24 @@
 }
 
 .logo {
-  pointer-events: none;
+  line-height: 0;
+  flex-shrink: 0;
 }
 
 .logo img {
   display: block;
-  width: clamp(32px, 5vw, 44px);
-  height: auto;
+  height: clamp(18px, 4.8vw, 24px);
+  width: auto;
+  max-width: none;
+  aspect-ratio: 151.58 / 70.97;
+  object-fit: contain;
   filter: brightness(0) invert(1);
+}
+
+@media (min-width: 769px) {
+  .logo img {
+    height: clamp(24px, 3vh, 28px);
+  }
 }
 
 @media (min-width: 769px) {
