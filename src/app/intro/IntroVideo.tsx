@@ -366,12 +366,10 @@ export function IntroVideo() {
       video.volume = 1;
       video.muted = false;
       setIsMuted(false);
-      setPlayRequested(true);
 
       try {
         await video.play();
       } catch {
-        setPlayRequested(false);
         setShowPlayIcon(true);
       }
     };
@@ -660,7 +658,7 @@ export function IntroVideo() {
     >
       <video
         ref={videoRef}
-        className={styles.video}
+        className={`${styles.video} ${phase === "loading" ? styles.videoHidden : ""}`}
         src={videoSrc}
         width={INTRO_VIDEO_WIDTH}
         height={INTRO_VIDEO_HEIGHT}
