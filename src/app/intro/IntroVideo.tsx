@@ -604,7 +604,7 @@ export function IntroVideo() {
         >
           <OverlayStatus>
             {overlayShowsPlay ? (
-              <PlayIcon className={styles.overlayPlay} />
+              <span className={styles.overlayPlayLabel}>PLAY</span>
             ) : (
               <span className={styles.overlayPercent}>{loadPercent}</span>
             )}

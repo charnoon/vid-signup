@@ -44,6 +44,9 @@ export default function IntroPage() {
               decoding="async"
             />
           </div>
+          <a className={styles.enquireLink} href="mailto:info@vid.global">
+            Enquire
+          </a>
         </div>
         <IntroVideo />
       </div>

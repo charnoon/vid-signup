@@ -34,10 +34,42 @@
 
 .topBar {
   z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   pointer-events: none;
 }
 
+.logo {
+  line-height: 0;
+  flex-shrink: 0;
+  pointer-events: auto;
+}
+
+.enquireLink {
+  flex-shrink: 0;
+  pointer-events: auto;
+  color: #fff;
+  font-size: var(--intro-logo-height);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  opacity: 0.92;
+  transition: opacity 0.2s ease;
+}
+
+.enquireLink:hover,
+.enquireLink:focus-visible {
+  opacity: 1;
+}
+
 @media (max-width: 768px) {
+  .page {
+    --intro-logo-height: clamp(12px, 2.97vw, 15px);
+  }
+
   .content {
     display: flex;
     flex-direction: column;
@@ -55,19 +87,6 @@
   }
 }
 
-@media (min-width: 769px) {
-  .topBar {
-    position: fixed;
-    top: calc(var(--intro-inset-block) + env(safe-area-inset-top, 0px));
-    left: calc(var(--intro-inset-inline) + env(safe-area-inset-left, 0px));
-  }
-}
-
-.logo {
-  line-height: 0;
-  flex-shrink: 0;
-}
-
 .logo img {
   display: block;
   height: var(--intro-logo-height);
@@ -76,6 +95,15 @@
   aspect-ratio: 151.58 / 70.97;
   object-fit: contain;
   filter: brightness(0) invert(1);
+}
+
+@media (min-width: 769px) {
+  .topBar {
+    position: fixed;
+    top: calc(var(--intro-inset-block) + env(safe-area-inset-top, 0px));
+    right: calc(var(--intro-inset-inline) + env(safe-area-inset-right, 0px));
+    left: calc(var(--intro-inset-inline) + env(safe-area-inset-left, 0px));
+  }
 }
 
 @media (min-width: 769px) {
@@ -160,13 +188,14 @@ button.mediaOverlay {
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
 }
 
-.overlayPlay {
-  display: block;
-  width: 18px;
-  height: 18px;
-  margin-left: 2px;
-  opacity: 0.95;
-  filter: drop-shadow(0 1px 8px rgba(0, 0, 0, 0.65));
+.overlayPlayLabel {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
 }
 
 .controlsDock {
