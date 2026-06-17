@@ -1,0 +1,261 @@
+.page {
+  --intro-inset-block: 5vh;
+  --intro-inset-inline: 8px;
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: #000;
+  padding:
+    calc(var(--intro-inset-block) + env(safe-area-inset-top, 0px))
+    calc(var(--intro-inset-inline) + env(safe-area-inset-right, 0px))
+    calc(var(--intro-inset-block) + env(safe-area-inset-bottom, 0px))
+    calc(var(--intro-inset-inline) + env(safe-area-inset-left, 0px));
+}
+
+.content {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.topBar {
+  position: fixed;
+  top: calc(var(--intro-inset-block) + env(safe-area-inset-top, 0px));
+  left: calc(var(--intro-inset-inline) + env(safe-area-inset-left, 0px));
+  z-index: 3;
+  pointer-events: none;
+}
+
+.logo {
+  pointer-events: none;
+}
+
+.logo img {
+  display: block;
+  width: clamp(32px, 5vw, 44px);
+  height: auto;
+  filter: brightness(0) invert(1);
+}
+
+@media (min-width: 769px) {
+  .page {
+    --intro-inset-block: 7.5vh;
+    --intro-inset-inline: 7.5vh;
+  }
+}
+
+.videoStage {
+  position: relative;
+  display: inline-grid;
+  grid-template: auto / auto;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  line-height: 0;
+}
+
+.video {
+  grid-area: 1 / 1;
+  display: block;
+  width: auto;
+  height: auto;
+  max-height: min(
+    90dvh,
+    calc(
+      100dvh - 2 * var(--intro-inset-block) - env(safe-area-inset-top, 0px) -
+        env(safe-area-inset-bottom, 0px)
+    )
+  );
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.mediaOverlay {
+  grid-area: 1 / 1;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #000;
+  color: #fff;
+  cursor: default;
+}
+
+button.mediaOverlay {
+  cursor: pointer;
+}
+
+.viewfinderFrame {
+  position: relative;
+  width: 92px;
+  height: 52px;
+}
+
+.viewfinderCorner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #fff;
+}
+
+.viewfinderCorner[data-corner="tl"] {
+  top: 0;
+  left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.viewfinderCorner[data-corner="tr"] {
+  top: 0;
+  right: 0;
+  border-left: 0;
+  border-bottom: 0;
+}
+
+.viewfinderCorner[data-corner="bl"] {
+  bottom: 0;
+  left: 0;
+  border-right: 0;
+  border-top: 0;
+}
+
+.viewfinderCorner[data-corner="br"] {
+  bottom: 0;
+  right: 0;
+  border-left: 0;
+  border-top: 0;
+}
+
+.viewfinderCenter {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewfinderPercent {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+
+.viewfinderPlay {
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin-left: 2px;
+  opacity: 0.92;
+}
+
+.controlsBar {
+  grid-area: 1 / 1;
+  align-self: end;
+  justify-self: stretch;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 10px 10px;
+  transition: opacity 0.2s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .controlsBar {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .videoStage:hover .controlsBar,
+  .videoStage:focus-within .controlsBar {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.controlGroup {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.timeline {
+  flex: 1;
+  min-width: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.22);
+  cursor: pointer;
+  border-radius: 1px;
+}
+
+.timeline:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 3px;
+}
+
+.timelineProgress {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+.controlButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 4px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  opacity: 0.65;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.controlButton:hover,
+.controlButton:focus-visible {
+  opacity: 1;
+}
+
+.controlIcon {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.videoStage:fullscreen {
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  border-radius: 0;
+  overflow: visible;
+}
+
+.videoStage:fullscreen .video {
+  max-height: 100%;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+}
+
+.videoStage:fullscreen .controlsBar {
+  margin: 0 20px 20px;
+}
