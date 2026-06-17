@@ -184,12 +184,15 @@ export function IntroVideo() {
   const maxDisplayPercentRef = useRef(0);
   const loadCompleteRef = useRef(false);
   const lastPlayAttemptRef = useRef(0);
+  const hasStartedPlaybackRef = useRef(false);
+  const startPlaybackFromGestureRef = useRef<() => void>(() => {});
+
   const [isTouch, setIsTouch] = useState(false);
   const [touchReady, setTouchReady] = useState(false);
-
   const [phase, setPhase] = useState<IntroPhase>("loading");
   const [loadPercent, setLoadPercent] = useState(0);
   const [showPlayIcon, setShowPlayIcon] = useState(false);
+  const [playRequested, setPlayRequested] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -205,8 +208,6 @@ export function IntroVideo() {
     setTouchReady(true);
   }, []);
 
-  const startPlaybackFromGestureRef = useRef<() => void>(() => {});
-
   startPlaybackFromGestureRef.current = () => {
     const video = videoRef.current;
     if (!video || phaseRef.current === "playing") return;
@@ -216,22 +217,18 @@ export function IntroVideo() {
     lastPlayAttemptRef.current = now;
 
     markVideoInline(video);
+    setPlayRequested(true);
+    setShowPlayIcon(false);
+
     video.volume = 1;
-    video.muted = false;
+    video.muted = isTouch;
 
     const playPromise = video.play();
     if (!playPromise) return;
 
     playPromise.catch(() => {
-      if (!video.paused) return;
-
-      video.muted = true;
-      const mutedPromise = video.play();
-      if (!mutedPromise) return;
-
-      mutedPromise.catch(() => {
-        setShowPlayIcon(true);
-      });
+      setPlayRequested(false);
+      setShowPlayIcon(true);
     });
   };
 
@@ -239,29 +236,39 @@ export function IntroVideo() {
     const video = videoRef.current;
     if (!video) return;
 
-    const onPlay = () => {
+    const onPlaying = () => {
+      hasStartedPlaybackRef.current = true;
       setPhase("playing");
       setIsPlaying(true);
-      setShowPlayIcon(false);
-    };
-
-    const onPlaying = () => {
+      setPlayRequested(false);
       setIsRebuffering(false);
+      setShowPlayIcon(false);
+
+      if (isTouch && video.muted) {
+        video.muted = false;
+        video.volume = 1;
+      }
+
       setIsMuted(video.muted);
     };
 
     const onPause = () => setIsPlaying(false);
+    const onWaiting = () => {
+      if (hasStartedPlaybackRef.current) {
+        setIsRebuffering(true);
+      }
+    };
 
-    video.addEventListener("play", onPlay);
     video.addEventListener("playing", onPlaying);
     video.addEventListener("pause", onPause);
+    video.addEventListener("waiting", onWaiting);
 
     return () => {
-      video.removeEventListener("play", onPlay);
       video.removeEventListener("playing", onPlaying);
       video.removeEventListener("pause", onPause);
+      video.removeEventListener("waiting", onWaiting);
     };
-  }, []);
+  }, [isTouch]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -288,13 +295,15 @@ export function IntroVideo() {
       markVideoInline(video);
       video.volume = 1;
       video.muted = false;
+      setPlayRequested(true);
 
       try {
         await video.play();
-        return;
       } catch {
+        setPlayRequested(false);
         try {
           video.muted = true;
+          setPlayRequested(true);
           await video.play();
           setIsMuted(true);
         } catch {
@@ -304,7 +313,7 @@ export function IntroVideo() {
     };
 
     const syncLoadState = () => {
-      if (phaseRef.current !== "loading" || loadCompleteRef.current) return;
+      if (phaseRef.current !== "loading") return;
 
       const mediaPercent = getMediaLoadPercent(video);
       const timedPercent = getTimedLoadPercent(loadStartedAtRef.current);
@@ -316,7 +325,7 @@ export function IntroVideo() {
       maxDisplayPercentRef.current = nextPercent;
       setLoadPercent(nextPercent);
 
-      if (isMediaReady(video) || nextPercent >= 100) {
+      if (!loadCompleteRef.current && (isMediaReady(video) || nextPercent >= 100)) {
         void finishLoading();
       }
     };
@@ -325,17 +334,13 @@ export function IntroVideo() {
       syncLoadState();
     };
 
-    const onCanPlay = () => {
-      void finishLoading();
-    };
-
     const pollId = window.setInterval(syncLoadState, 80);
 
     video.addEventListener("loadstart", onMediaEvent);
     video.addEventListener("loadedmetadata", onMediaEvent);
     video.addEventListener("loadeddata", onMediaEvent);
-    video.addEventListener("canplay", onCanPlay);
-    video.addEventListener("canplaythrough", onCanPlay);
+    video.addEventListener("canplay", onMediaEvent);
+    video.addEventListener("canplaythrough", onMediaEvent);
     video.addEventListener("progress", onMediaEvent);
 
     syncLoadState();
@@ -345,8 +350,8 @@ export function IntroVideo() {
       video.removeEventListener("loadstart", onMediaEvent);
       video.removeEventListener("loadedmetadata", onMediaEvent);
       video.removeEventListener("loadeddata", onMediaEvent);
-      video.removeEventListener("canplay", onCanPlay);
-      video.removeEventListener("canplaythrough", onCanPlay);
+      video.removeEventListener("canplay", onMediaEvent);
+      video.removeEventListener("canplaythrough", onMediaEvent);
       video.removeEventListener("progress", onMediaEvent);
     };
   }, [isTouch, touchReady]);
@@ -375,30 +380,22 @@ export function IntroVideo() {
     const onTimeUpdate = () => {
       if (!video.duration) return;
       setProgress(video.currentTime / video.duration);
-      if (phase === "playing") {
+
+      if (phaseRef.current === "loading" || isRebuffering) {
         setLoadPercent(getMediaLoadPercent(video));
       }
     };
-    const onWaiting = () => setIsRebuffering(true);
-    const onPlaying = () => {
-      setIsRebuffering(false);
-      setIsMuted(video.muted);
-      setLoadPercent(getMediaLoadPercent(video));
-    };
+
     const onSeeked = () => setIsRebuffering(false);
 
     video.addEventListener("timeupdate", onTimeUpdate);
-    video.addEventListener("waiting", onWaiting);
-    video.addEventListener("playing", onPlaying);
     video.addEventListener("seeked", onSeeked);
 
     return () => {
       video.removeEventListener("timeupdate", onTimeUpdate);
-      video.removeEventListener("waiting", onWaiting);
-      video.removeEventListener("playing", onPlaying);
       video.removeEventListener("seeked", onSeeked);
     };
-  }, [phase]);
+  }, [isRebuffering]);
 
   useEffect(() => {
     const onFullscreenChange = () => {
@@ -486,7 +483,8 @@ export function IntroVideo() {
     webkitVideo.webkitEnterFullscreen?.();
   };
 
-  const overlayShowsPlay = showPlayIcon || loadPercent >= 100;
+  const showLoadOverlay = phase === "loading";
+  const overlayShowsPlay = showPlayIcon && !playRequested;
 
   return (
     <div ref={stageRef} className={styles.videoStage}>
@@ -501,7 +499,7 @@ export function IntroVideo() {
       >
         <source src={PROMO_SRC} type="video/mp4" />
       </video>
-      {phase === "loading" ? (
+      {showLoadOverlay ? (
         <button
           ref={overlayRef}
           type="button"
