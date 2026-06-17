@@ -106,7 +106,7 @@
   .page {
     --intro-inset-block: 16px;
     --intro-inset-block-top: 24px;
-    --intro-logo-height: clamp(13px, 3.27vw, 17px);
+    --intro-logo-height: clamp(13.91px, 3.5vw, 18.19px);
   }
 
   .content {
@@ -240,6 +240,13 @@ button.mediaOverlay {
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.85);
   background: transparent;
+  opacity: 0.88;
+  transition: opacity 0.2s ease;
+}
+
+button.mediaOverlay:hover .overlayPlayPill,
+button.mediaOverlay:focus-visible .overlayPlayPill {
+  opacity: 1;
 }
 
 .overlayPlayLabel {
@@ -251,7 +258,6 @@ button.mediaOverlay {
   letter-spacing: calc(2 / 100 * 1em);
   line-height: 1.12;
   color: #fff;
-  transform: translateY(2px);
 }
 
 .controlsDock {
