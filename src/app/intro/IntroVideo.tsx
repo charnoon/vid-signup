@@ -4,8 +4,8 @@ import Hls from "hls.js";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  getIntroPoster,
   getIntroStream,
-  PROMO_POSTER,
   supportsNativeHls,
 } from "./intro-stream";
 import styles from "./intro.module.css";
@@ -205,7 +205,8 @@ export function IntroVideo() {
   const [progress, setProgress] = useState(0);
   const [isRebuffering, setIsRebuffering] = useState(false);
 
-  const stream = useMemo(() => (touchReady ? getIntroStream(isTouch) : null), [isTouch, touchReady]);
+  const stream = useMemo(() => (touchReady ? getIntroStream() : null), [touchReady]);
+  const poster = useMemo(() => getIntroPoster(), [touchReady]);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -232,8 +233,6 @@ export function IntroVideo() {
       } else {
         video.src = stream.src;
       }
-    } else {
-      video.src = stream.src;
     }
 
     return () => {
@@ -342,15 +341,12 @@ export function IntroVideo() {
     const video = videoRef.current;
     if (!video || !touchReady) return;
 
-    const currentStream = getIntroStream(isTouch);
+    const currentStream = getIntroStream();
+    if (!currentStream) return;
 
     loadStartedAtRef.current = Date.now();
     maxDisplayPercentRef.current = 0;
     loadCompleteRef.current = false;
-
-    if (currentStream.kind !== "hls") {
-      video.load();
-    }
 
     const finishLoading = async () => {
       if (phaseRef.current !== "loading" || loadCompleteRef.current) return;
@@ -612,7 +608,7 @@ export function IntroVideo() {
       <video
         ref={videoRef}
         className={styles.video}
-        poster={PROMO_POSTER}
+        poster={poster ?? undefined}
         loop
         playsInline
         preload="metadata"

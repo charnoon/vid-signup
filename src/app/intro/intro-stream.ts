@@ -1,34 +1,31 @@
-export const PROMO_SRC = "/assets/intro/vid-intro-promo.mp4";
-export const PROMO_SRC_MOBILE = "/assets/intro/vid-intro-promo-mobile.mp4";
-export const PROMO_POSTER = "/assets/intro/vid-intro-promo-poster.jpg";
-
 export const INTRO_VIDEO_WIDTH = 1080;
 export const INTRO_VIDEO_HEIGHT = 2250;
 export const INTRO_VIDEO_ASPECT_RATIO = INTRO_VIDEO_WIDTH / INTRO_VIDEO_HEIGHT;
 
-export type IntroStream =
-  | { kind: "mp4"; src: string }
-  | { kind: "hls"; src: string };
+export type IntroStream = {
+  kind: "hls";
+  src: string;
+};
 
 export function getMuxIntroPlaybackId() {
   return process.env.NEXT_PUBLIC_MUX_INTRO_PLAYBACK_ID?.trim() || null;
 }
 
-export function getIntroStream(isTouch: boolean): IntroStream {
+export function getIntroStream(): IntroStream | null {
   const muxPlaybackId = getMuxIntroPlaybackId();
+  if (!muxPlaybackId) return null;
 
-  if (muxPlaybackId) {
-    return {
-      kind: "hls",
-      src: `https://stream.mux.com/${muxPlaybackId}.m3u8`,
-    };
-  }
+  return {
+    kind: "hls",
+    src: `https://stream.mux.com/${muxPlaybackId}.m3u8`,
+  };
+}
 
-  if (isTouch) {
-    return { kind: "mp4", src: PROMO_SRC_MOBILE };
-  }
+export function getIntroPoster() {
+  const muxPlaybackId = getMuxIntroPlaybackId();
+  if (!muxPlaybackId) return null;
 
-  return { kind: "mp4", src: PROMO_SRC };
+  return `https://image.mux.com/${muxPlaybackId}/thumbnail.jpg?width=${INTRO_VIDEO_WIDTH}&time=0`;
 }
 
 export function supportsNativeHls(video: HTMLVideoElement) {
