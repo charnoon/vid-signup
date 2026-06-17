@@ -4,7 +4,6 @@
   --intro-inset-inline: 8px;
   --intro-logo-height: clamp(11px, 2.7vw, 14px);
   --intro-logo-gap: 14px;
-  --intro-mono: var(--font-ibm-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
   --intro-video-aspect: 1080 / 2250;
   --intro-video-max-height: min(
     90dvh,
@@ -60,8 +59,8 @@
   align-items: baseline;
   gap: 0;
   color: #fff;
-  font-family: var(--intro-mono);
-  font-size: 16px;
+  font-family: "OffBit Dot", sans-serif;
+  font-size: 10px;
   font-weight: normal;
   font-synthesis: none;
   text-transform: uppercase;
@@ -150,7 +149,7 @@
   .page {
     --intro-inset-block: 7.5vh;
     --intro-inset-inline: 7.5vh;
-    --intro-logo-height: clamp(16px, 1.95vh, 18px);
+    --intro-logo-height: clamp(18px, 2.25vh, 21px);
   }
 }
 
@@ -218,7 +217,7 @@ button.mediaOverlay {
 }
 
 .overlayPercent {
-  font-family: var(--intro-mono);
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   font-size: 11px;
   font-weight: 400;
   line-height: 1;
@@ -239,9 +238,10 @@ button.mediaOverlay {
 }
 
 .overlayPlayLabel {
-  font-family: var(--intro-mono);
-  font-size: 16px;
-  font-weight: 400;
+  font-family: "OffBit Dot", sans-serif;
+  font-size: 10px;
+  font-weight: normal;
+  font-synthesis: none;
   text-transform: uppercase;
   letter-spacing: calc(2 / 100 * 1em);
   line-height: 1.12;
