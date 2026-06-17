@@ -1,6 +1,14 @@
 .page {
   --intro-inset-block: 5vh;
   --intro-inset-inline: 8px;
+  --intro-video-aspect: 1080 / 2250;
+  --intro-video-max-height: min(
+    90dvh,
+    calc(
+      100dvh - 2 * var(--intro-inset-block) - env(safe-area-inset-top, 0px) -
+        env(safe-area-inset-bottom, 0px)
+    )
+  );
   position: relative;
   height: 100vh;
   height: 100dvh;
@@ -36,7 +44,7 @@
 
 .logo img {
   display: block;
-  height: clamp(18px, 4.8vw, 24px);
+  height: clamp(11px, 2.7vw, 14px);
   width: auto;
   max-width: none;
   aspect-ratio: 151.58 / 70.97;
@@ -46,7 +54,7 @@
 
 @media (min-width: 769px) {
   .logo img {
-    height: clamp(24px, 3vh, 28px);
+    height: clamp(14px, 1.7vh, 16px);
   }
 }
 
@@ -60,8 +68,10 @@
 .videoStage {
   position: relative;
   display: inline-grid;
-  grid-template: auto / auto;
-  max-width: 100%;
+  grid-template: 1fr / 1fr;
+  aspect-ratio: var(--intro-video-aspect);
+  width: min(100%, calc(var(--intro-video-max-height) * 1080 / 2250));
+  max-height: var(--intro-video-max-height);
   overflow: hidden;
   border-radius: 8px;
   line-height: 0;
@@ -70,16 +80,9 @@
 .video {
   grid-area: 1 / 1;
   display: block;
-  width: auto;
-  height: auto;
-  max-height: min(
-    90dvh,
-    calc(
-      100dvh - 2 * var(--intro-inset-block) - env(safe-area-inset-top, 0px) -
-        env(safe-area-inset-bottom, 0px)
-    )
-  );
-  max-width: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   border-radius: 8px;
 }
 
@@ -271,18 +274,19 @@ button.mediaOverlay {
   display: grid;
   align-items: center;
   justify-items: center;
-  width: 100%;
-  height: 100%;
+  aspect-ratio: var(--intro-video-aspect);
+  width: min(100vw, calc(100vh * 1080 / 2250));
+  max-height: 100vh;
+  height: auto;
   background: #000;
   border-radius: 0;
   overflow: visible;
 }
 
 .videoStage:fullscreen .video {
-  max-height: 100%;
-  max-width: 100%;
-  width: auto;
-  height: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   border-radius: 0;
 }
 

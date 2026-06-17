@@ -2,6 +2,10 @@ export const PROMO_SRC = "/assets/intro/vid-intro-promo.mp4";
 export const PROMO_SRC_MOBILE = "/assets/intro/vid-intro-promo-mobile.mp4";
 export const PROMO_POSTER = "/assets/intro/vid-intro-promo-poster.jpg";
 
+export const INTRO_VIDEO_WIDTH = 1080;
+export const INTRO_VIDEO_HEIGHT = 2250;
+export const INTRO_VIDEO_ASPECT_RATIO = INTRO_VIDEO_WIDTH / INTRO_VIDEO_HEIGHT;
+
 export type IntroStream =
   | { kind: "mp4"; src: string }
   | { kind: "hls"; src: string };
