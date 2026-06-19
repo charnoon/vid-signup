@@ -419,3 +419,123 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
 .videoStage:fullscreen .controlsBar {
   gap: 6px;
 }
+
+.accessStage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  aspect-ratio: var(--intro-video-aspect);
+  max-height: var(--intro-video-max-height);
+  height: auto;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #000;
+}
+
+.accessForm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: min(100%, 320px);
+  padding: 24px;
+}
+
+.accessPill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 8px 8px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: transparent;
+  opacity: 0.88;
+  transition: opacity 0.2s ease;
+}
+
+.accessForm:focus-within .accessPill {
+  opacity: 1;
+}
+
+.accessLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.accessInput {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-family: var(--intro-display);
+  font-size: 12px;
+  font-weight: normal;
+  font-synthesis: none;
+  text-transform: uppercase;
+  letter-spacing: calc(2 / 100 * 1em);
+  line-height: 1.12;
+  outline: none;
+}
+
+.accessInput::placeholder {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.accessSubmit {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.accessSubmit:not(:disabled):hover,
+.accessSubmit:not(:disabled):focus-visible {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.accessSubmit:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.accessSubmitLabel {
+  font-family: var(--intro-display);
+  font-size: 12px;
+  font-weight: normal;
+  font-synthesis: none;
+  text-transform: uppercase;
+  letter-spacing: calc(2 / 100 * 1em);
+  line-height: 1.12;
+  color: #fff;
+}
+
+.accessError {
+  margin: 0;
+  font-family: var(--intro-display);
+  font-size: 11px;
+  font-weight: normal;
+  font-synthesis: none;
+  text-transform: uppercase;
+  letter-spacing: calc(2 / 100 * 1em);
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.72);
+  text-align: center;
+}
