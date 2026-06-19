@@ -15,6 +15,15 @@
   --intro-video-aspect: 1080 / 2250;
   --intro-video-max-height: 90vh;
   --intro-video-max-height: 90dvh;
+  --disclaimer-bottom: 24px;
+  --disclaimer-panel-width: min(
+    320px,
+    calc(
+      100vw - 2 * var(--intro-inset-inline) - env(safe-area-inset-left, 0px) -
+        env(safe-area-inset-right, 0px)
+    )
+  );
+  --disclaimer-panel-gap: 10px;
   position: relative;
   box-sizing: border-box;
   height: 100vh;
@@ -44,6 +53,15 @@
 .content > * {
   flex-shrink: 0;
   align-self: center;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.previewStack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: min(100%, calc(var(--intro-video-max-height) * 1080 / 2250));
   max-width: 100%;
   min-width: 0;
 }
@@ -95,73 +113,76 @@
 
 @media (max-width: 768px) {
   .page {
-    --intro-inset-block-top: 24px;
+    --intro-inset-block-top: 8px;
     --intro-logo-height: clamp(13.91px, 3.5vw, 18.19px);
   }
-}
 
-@media (min-width: 769px) {
-  .page {
-    --intro-inset-block-top: 7.5vh;
-    --intro-inset-inline: 7.5vh;
-    --intro-logo-height: clamp(18px, 2.25vh, 21px);
-    --disclaimer-bottom: 64px;
-    --disclaimer-panel-width: 320px;
-    --disclaimer-panel-gap: 10px;
+  .previewStack {
+    gap: var(--intro-logo-gap);
+    padding-top: calc(
+      var(--intro-inset-block-top) + env(safe-area-inset-top, 0px)
+    );
   }
 
-  .disclaimerDock {
-    position: fixed;
-    z-index: 3;
-    right: calc(var(--intro-inset-inline) + env(safe-area-inset-right, 0px));
-    bottom: calc(var(--disclaimer-bottom) + env(safe-area-inset-bottom, 0px));
+  .topBar {
+    position: static;
+    top: auto;
+    right: auto;
     left: auto;
-    pointer-events: auto;
-  }
-
-  .disclaimerLink {
-    display: block;
-    margin: 0;
-    color: rgba(255, 255, 255, 0.42);
-    font-family: var(--intro-display);
-    font-size: 9px;
-    font-weight: normal;
-    font-synthesis: none;
-    line-height: 1;
-    text-transform: uppercase;
-    letter-spacing: calc(2 / 100 * 1em);
-    cursor: default;
-    transition: color 0.2s ease;
-  }
-
-  .disclaimerPanel {
-    position: absolute;
-    right: 0;
-    bottom: calc(100% + var(--disclaimer-panel-gap));
-    width: var(--disclaimer-panel-width);
-    margin: 0;
-    color: rgba(255, 255, 255, 0.42);
-    font-family: var(--intro-display);
-    font-size: 9px;
-    font-weight: normal;
-    font-synthesis: none;
-    line-height: 1.45;
-    text-transform: uppercase;
-    letter-spacing: calc(2 / 100 * 1em);
-    text-align: right;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(4px);
-    transition:
-      opacity 0.25s ease,
-      visibility 0.25s ease,
-      transform 0.25s ease,
-      color 0.2s ease;
-    pointer-events: none;
   }
 }
 
-@media (min-width: 769px) and (hover: hover) {
+.disclaimerDock {
+  position: fixed;
+  z-index: 3;
+  right: calc(var(--intro-inset-inline) + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--disclaimer-bottom) + env(safe-area-inset-bottom, 0px));
+  left: auto;
+  pointer-events: auto;
+}
+
+.disclaimerLink {
+  display: block;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.42);
+  font-family: var(--intro-display);
+  font-size: 9px;
+  font-weight: normal;
+  font-synthesis: none;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: calc(2 / 100 * 1em);
+  cursor: default;
+  transition: color 0.2s ease;
+}
+
+.disclaimerPanel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + var(--disclaimer-panel-gap));
+  width: var(--disclaimer-panel-width);
+  margin: 0;
+  color: rgba(255, 255, 255, 0.42);
+  font-family: var(--intro-display);
+  font-size: 9px;
+  font-weight: normal;
+  font-synthesis: none;
+  line-height: 1.45;
+  text-transform: uppercase;
+  letter-spacing: calc(2 / 100 * 1em);
+  text-align: right;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease,
+    transform 0.25s ease,
+    color 0.2s ease;
+  pointer-events: none;
+}
+
+@media (hover: hover) {
   .disclaimerDock:hover .disclaimerLink {
     color: rgba(255, 255, 255, 0.72);
   }
@@ -173,9 +194,17 @@
   }
 }
 
-@media (max-width: 768px) {
-  .disclaimerDock {
-    display: none;
+@media (min-width: 769px) {
+  .previewStack {
+    display: contents;
+  }
+
+  .page {
+    --intro-inset-block-top: 7.5vh;
+    --intro-inset-inline: 7.5vh;
+    --intro-logo-height: clamp(18px, 2.25vh, 21px);
+    --disclaimer-bottom: 64px;
+    --disclaimer-panel-width: 320px;
   }
 }
 
@@ -469,9 +498,10 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
   aspect-ratio: var(--intro-video-aspect);
   height: auto;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
   background: #000;
-  box-shadow: var(--intro-frame-glow);
+  box-shadow: none;
 }
 
 .accessForm {

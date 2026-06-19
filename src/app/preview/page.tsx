@@ -51,24 +51,26 @@ export default async function IntroPage() {
           />
         </>
       ) : null}
-      <div className={styles.topBar}>
-        <div className={styles.brandRow}>
-          <a className={`${logoStyles.link} ${styles.logo}`} href="https://vid.global">
-            {/* eslint-disable-next-line @next/next/no-img-element -- local SVG asset */}
-            <img
-              className={`${logoStyles.mark} ${styles.logoMark}`}
-              src={VID_LOGO_SRC}
-              alt="Vid."
-              width={VID_LOGO_WIDTH}
-              height={VID_LOGO_HEIGHT}
-              decoding="async"
-            />
-          </a>
-          <p className={styles.previewTagline}>Private Preview</p>
-        </div>
-      </div>
       <div className={styles.content}>
-        {hasAccess ? <IntroVideo /> : <IntroAccessGate />}
+        <div className={styles.previewStack}>
+          <div className={styles.topBar}>
+            <div className={styles.brandRow}>
+              <a className={`${logoStyles.link} ${styles.logo}`} href="https://vid.global">
+                {/* eslint-disable-next-line @next/next/no-img-element -- local SVG asset */}
+                <img
+                  className={`${logoStyles.mark} ${styles.logoMark}`}
+                  src={VID_LOGO_SRC}
+                  alt="Vid."
+                  width={VID_LOGO_WIDTH}
+                  height={VID_LOGO_HEIGHT}
+                  decoding="async"
+                />
+              </a>
+              <p className={styles.previewTagline}>Private Preview</p>
+            </div>
+          </div>
+          {hasAccess ? <IntroVideo /> : <IntroAccessGate />}
+        </div>
       </div>
       <PreviewDisclaimerLink />
     </main>
