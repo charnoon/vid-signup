@@ -130,6 +130,10 @@
     right: auto;
     left: auto;
   }
+
+  .previewTagline {
+    transform: translateY(-1px);
+  }
 }
 
 .disclaimerDock {
