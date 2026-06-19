@@ -15,7 +15,6 @@
   --intro-video-aspect: 1080 / 2250;
   --intro-video-max-height: 90vh;
   --intro-video-max-height: 90dvh;
-  --disclaimer-bottom: 24px;
   --disclaimer-panel-width: min(
     320px,
     calc(
@@ -70,10 +69,19 @@
   position: fixed;
   z-index: 3;
   top: calc(var(--intro-inset-block-top) + env(safe-area-inset-top, 0px));
-  right: calc(var(--intro-inset-inline) + env(safe-area-inset-right, 0px));
-  left: calc(var(--intro-inset-inline) + env(safe-area-inset-left, 0px));
+  right: auto;
+  left: 50%;
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  box-sizing: border-box;
+  width: min(
+    calc(100% - 2 * var(--intro-inset-inline)),
+    calc(var(--intro-video-max-height) * 1080 / 2250)
+  );
+  max-width: 100%;
+  transform: translateX(-50%);
   pointer-events: none;
 }
 
@@ -129,19 +137,22 @@
     top: auto;
     right: auto;
     left: auto;
+    transform: none;
+    width: 100%;
   }
 
   .previewTagline {
     transform: translateY(-1px);
   }
+
+  .disclaimerLink {
+    transform: translateY(-1px);
+  }
 }
 
 .disclaimerDock {
-  position: fixed;
-  z-index: 3;
-  right: calc(var(--intro-inset-inline) + env(safe-area-inset-right, 0px));
-  bottom: calc(var(--disclaimer-bottom) + env(safe-area-inset-bottom, 0px));
-  left: auto;
+  position: relative;
+  flex-shrink: 0;
   pointer-events: auto;
 }
 
@@ -153,17 +164,20 @@
   font-size: 9px;
   font-weight: normal;
   font-synthesis: none;
-  line-height: 1;
+  line-height: 1.2;
   text-transform: uppercase;
   letter-spacing: calc(2 / 100 * 1em);
   cursor: default;
+  transform: translateY(2px);
   transition: color 0.2s ease;
 }
 
 .disclaimerPanel {
   position: absolute;
+  z-index: 4;
+  top: calc(100% + var(--disclaimer-panel-gap));
   right: 0;
-  bottom: calc(100% + var(--disclaimer-panel-gap));
+  bottom: auto;
   width: var(--disclaimer-panel-width);
   margin: 0;
   color: rgba(255, 255, 255, 0.42);
@@ -207,7 +221,6 @@
     --intro-inset-block-top: 7.5vh;
     --intro-inset-inline: 7.5vh;
     --intro-logo-height: clamp(18px, 2.25vh, 21px);
-    --disclaimer-bottom: 64px;
     --disclaimer-panel-width: 320px;
   }
 }

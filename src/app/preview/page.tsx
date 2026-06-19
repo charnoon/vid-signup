@@ -68,11 +68,11 @@ export default async function IntroPage() {
               </a>
               <p className={styles.previewTagline}>Private Preview</p>
             </div>
+            <PreviewDisclaimerLink />
           </div>
           {hasAccess ? <IntroVideo /> : <IntroAccessGate />}
         </div>
       </div>
-      <PreviewDisclaimerLink />
     </main>
   );
 }

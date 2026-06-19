@@ -180,6 +180,7 @@ export function IntroVideo() {
   const lastPlayAttemptRef = useRef(0);
   const hasStartedPlaybackRef = useRef(false);
   const unlockMutedOnFirstPlayRef = useRef(false);
+  const shouldEnterMobileFullscreenRef = useRef(false);
   const isScrubbingRef = useRef(false);
   const isTouchRef = useRef(false);
   const controlsHideTimerRef = useRef<number | null>(null);
@@ -231,6 +232,25 @@ export function IntroVideo() {
     scheduleControlsHide();
   }, [scheduleControlsHide]);
 
+  const requestMobileFullscreen = useCallback(() => {
+    const stage = stageRef.current;
+    const video = videoRef.current;
+    if (!stage || !video || !isTouchRef.current) return;
+
+    const webkitVideo = video as HTMLVideoElement & {
+      webkitEnterFullscreen?: () => void;
+    };
+
+    if (webkitVideo.webkitEnterFullscreen) {
+      webkitVideo.webkitEnterFullscreen();
+      return;
+    }
+
+    if (stage.requestFullscreen) {
+      void stage.requestFullscreen();
+    }
+  }, []);
+
   const syncPlaybackState = () => {
     const video = videoRef.current;
     if (!video) return;
@@ -264,8 +284,10 @@ export function IntroVideo() {
     video.volume = 1;
 
     if (isTouchRef.current) {
-      video.muted = true;
-      unlockMutedOnFirstPlayRef.current = true;
+      shouldEnterMobileFullscreenRef.current = true;
+      video.muted = false;
+      setIsMuted(false);
+      unlockMutedOnFirstPlayRef.current = false;
     } else {
       video.muted = false;
       setIsMuted(false);
@@ -277,14 +299,13 @@ export function IntroVideo() {
 
     playPromise.catch(() => {
       video.muted = true;
-      if (!isTouchRef.current) {
-        unlockMutedOnFirstPlayRef.current = true;
-      }
+      unlockMutedOnFirstPlayRef.current = true;
 
       void video.play().catch(() => {
         setPlayRequested(false);
         setShowPlayIcon(true);
         unlockMutedOnFirstPlayRef.current = false;
+        shouldEnterMobileFullscreenRef.current = false;
       });
     });
   };
@@ -304,12 +325,17 @@ export function IntroVideo() {
         video.muted = false;
         video.volume = 1;
         unlockMutedOnFirstPlayRef.current = false;
-      } else if (!isTouchRef.current) {
+      } else {
         video.muted = false;
         video.volume = 1;
       }
 
       syncPlaybackState();
+
+      if (shouldEnterMobileFullscreenRef.current && isTouchRef.current) {
+        shouldEnterMobileFullscreenRef.current = false;
+        requestMobileFullscreen();
+      }
     };
 
     const onPause = () => {
@@ -337,7 +363,7 @@ export function IntroVideo() {
       video.removeEventListener("waiting", onWaiting);
       video.removeEventListener("volumechange", onVolumeChange);
     };
-  }, []);
+  }, [requestMobileFullscreen]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -498,9 +524,20 @@ export function IntroVideo() {
       setIsFullscreen(Boolean(document.fullscreenElement));
     };
 
+    const video = videoRef.current;
+    const onWebkitBeginFullscreen = () => setIsFullscreen(true);
+    const onWebkitEndFullscreen = () => setIsFullscreen(false);
+
     document.addEventListener("fullscreenchange", onFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
-  }, []);
+    video?.addEventListener("webkitbeginfullscreen", onWebkitBeginFullscreen);
+    video?.addEventListener("webkitendfullscreen", onWebkitEndFullscreen);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+      video?.removeEventListener("webkitbeginfullscreen", onWebkitBeginFullscreen);
+      video?.removeEventListener("webkitendfullscreen", onWebkitEndFullscreen);
+    };
+  }, [videoSrc]);
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -511,6 +548,13 @@ export function IntroVideo() {
     if (!video.paused) {
       video.pause();
       return;
+    }
+
+    if (isTouchRef.current) {
+      video.muted = false;
+      video.volume = 1;
+      setIsMuted(false);
+      shouldEnterMobileFullscreenRef.current = true;
     }
 
     resumePlayback();
