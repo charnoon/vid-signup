@@ -42,7 +42,7 @@ export function IntroAccessGate() {
 
   return (
     <div className={styles.accessStage}>
-      <form className={styles.accessForm} onSubmit={handleSubmit}>
+      <form className={styles.accessForm} onSubmit={handleSubmit} autoComplete="off">
         <div className={styles.accessPill}>
           <label className={styles.accessLabel} htmlFor="intro-access-password">
             Password
@@ -51,13 +51,15 @@ export function IntroAccessGate() {
             id="intro-access-password"
             className={styles.accessInput}
             type="password"
-            name="password"
+            name="preview-access-code"
             placeholder="Password"
-            autoComplete="current-password"
+            autoComplete="off"
             autoFocus
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             disabled={isSubmitting}
+            data-1p-ignore
+            data-lpignore="true"
           />
           <button
             type="submit"
