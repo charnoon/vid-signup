@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 
 import { IntroAccessGate } from "./IntroAccessGate";
 import { IntroVideo } from "./IntroVideo";
+import { PreviewDisclaimerLink } from "./PreviewDisclaimerLink";
 import {
   INTRO_VIDEO_DESKTOP_SRC,
   INTRO_VIDEO_MOBILE_SRC,
@@ -50,8 +51,8 @@ export default async function IntroPage() {
           />
         </>
       ) : null}
-      <div className={styles.content}>
-        <div className={styles.topBar}>
+      <div className={styles.topBar}>
+        <div className={styles.brandRow}>
           <a className={`${logoStyles.link} ${styles.logo}`} href="https://vid.global">
             {/* eslint-disable-next-line @next/next/no-img-element -- local SVG asset */}
             <img
@@ -63,15 +64,13 @@ export default async function IntroPage() {
               decoding="async"
             />
           </a>
-          <a className={styles.enquireLink} href="mailto:info@vid.global">
-            <span className={styles.enquireLinkText}>Enquire</span>
-            <span className={styles.enquireLinkArrow} aria-hidden="true">
-              →
-            </span>
-          </a>
+          <p className={styles.previewTagline}>Private Preview</p>
         </div>
+      </div>
+      <div className={styles.content}>
         {hasAccess ? <IntroVideo /> : <IntroAccessGate />}
       </div>
+      <PreviewDisclaimerLink />
     </main>
   );
 }

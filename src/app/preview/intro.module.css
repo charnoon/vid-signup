@@ -4,47 +4,86 @@
   --intro-inset-inline: 8px;
   --intro-logo-height: clamp(11px, 2.7vw, 14px);
   --intro-logo-gap: 14px;
+  --intro-text-size: 16px;
+  --intro-tagline-gap: 10px;
+  --intro-frame-glow:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 0 40px rgba(255, 255, 255, 0.06),
+    0 0 96px rgba(255, 255, 255, 0.035),
+    0 0 160px rgba(255, 255, 255, 0.02);
   --intro-display: var(--vid-display);
   --intro-video-aspect: 1080 / 2250;
-  --intro-video-max-height: min(
-    90dvh,
-    calc(
-      100dvh - var(--intro-inset-block-top) - var(--intro-inset-block) -
-        env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
-    )
-  );
+  --intro-video-max-height: 90vh;
+  --intro-video-max-height: 90dvh;
   position: relative;
+  box-sizing: border-box;
   height: 100vh;
   height: 100dvh;
   min-height: 100vh;
   min-height: 100dvh;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
   background: #000;
   padding:
-    calc(var(--intro-inset-block-top) + env(safe-area-inset-top, 0px))
+    0
     calc(var(--intro-inset-inline) + env(safe-area-inset-right, 0px))
-    calc(var(--intro-inset-block) + env(safe-area-inset-bottom, 0px))
+    0
     calc(var(--intro-inset-inline) + env(safe-area-inset-left, 0px));
 }
 
 .content {
-  width: min(100%, calc(var(--intro-video-max-height) * 1080 / 2250));
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  margin: 0 auto;
+}
+
+.content > * {
+  flex-shrink: 0;
+  align-self: center;
   max-width: 100%;
   min-width: 0;
 }
 
 .topBar {
+  position: fixed;
   z-index: 3;
+  top: calc(var(--intro-inset-block-top) + env(safe-area-inset-top, 0px));
+  right: calc(var(--intro-inset-inline) + env(safe-area-inset-right, 0px));
+  left: calc(var(--intro-inset-inline) + env(safe-area-inset-left, 0px));
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  pointer-events: none;
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: var(--intro-tagline-gap);
+  min-width: 0;
   pointer-events: none;
 }
 
 .logo {
   pointer-events: auto;
+}
+
+.previewTagline {
+  margin: 0;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-family: var(--intro-display);
+  font-size: var(--intro-text-size);
+  font-weight: normal;
+  font-synthesis: none;
+  text-transform: uppercase;
+  letter-spacing: calc(2 / 100 * 1em);
+  line-height: 1.2;
+  white-space: nowrap;
+  transform: translateY(2px);
 }
 
 .logo .logoMark {
@@ -54,94 +93,89 @@
   filter: brightness(0) invert(1);
 }
 
-.enquireLink {
-  flex-shrink: 0;
-  pointer-events: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  color: #fff;
-  font-family: var(--intro-display);
-  font-size: 14px;
-  font-weight: normal;
-  font-synthesis: none;
-  text-transform: uppercase;
-  letter-spacing: calc(2 / 100 * 1em);
-  line-height: 1.12;
-  text-decoration: none;
-}
-
-.enquireLinkText {
-  font-family: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  letter-spacing: inherit;
-  line-height: inherit;
-  color: inherit;
-}
-
-.enquireLinkArrow {
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 1em;
-  font-weight: 400;
-  letter-spacing: 0;
-  line-height: 1;
-  color: inherit;
-  display: inline-block;
-  opacity: 0;
-  max-width: 0;
-  margin-left: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  transition: opacity 220ms ease, max-width 220ms ease, margin-left 220ms ease;
-}
-
-.enquireLink:hover .enquireLinkArrow,
-.enquireLink:focus-visible .enquireLinkArrow {
-  opacity: 1;
-  max-width: 2ch;
-  margin-left: 6px;
-}
-
 @media (max-width: 768px) {
   .page {
-    --intro-inset-block: 16px;
     --intro-inset-block-top: 24px;
     --intro-logo-height: clamp(13.91px, 3.5vw, 18.19px);
   }
-
-  .content {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--intro-logo-gap);
-    transform: translateY(
-      calc(-0.5 * (var(--intro-logo-height) + var(--intro-logo-gap)))
-    );
-  }
-
-  .topBar {
-    position: static;
-    flex-shrink: 0;
-    align-self: stretch;
-    align-items: center;
-  }
-}
-
-@media (min-width: 769px) {
-  .topBar {
-    position: fixed;
-    top: calc(var(--intro-inset-block) + env(safe-area-inset-top, 0px));
-    right: calc(var(--intro-inset-inline) + env(safe-area-inset-right, 0px));
-    left: calc(var(--intro-inset-inline) + env(safe-area-inset-left, 0px));
-  }
 }
 
 @media (min-width: 769px) {
   .page {
-    --intro-inset-block: 7.5vh;
+    --intro-inset-block-top: 7.5vh;
     --intro-inset-inline: 7.5vh;
     --intro-logo-height: clamp(18px, 2.25vh, 21px);
+    --disclaimer-bottom: 64px;
+    --disclaimer-panel-width: 320px;
+    --disclaimer-panel-gap: 10px;
+  }
+
+  .disclaimerDock {
+    position: fixed;
+    z-index: 3;
+    right: calc(var(--intro-inset-inline) + env(safe-area-inset-right, 0px));
+    bottom: calc(var(--disclaimer-bottom) + env(safe-area-inset-bottom, 0px));
+    left: auto;
+    pointer-events: auto;
+  }
+
+  .disclaimerLink {
+    display: block;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.42);
+    font-family: var(--intro-display);
+    font-size: 9px;
+    font-weight: normal;
+    font-synthesis: none;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: calc(2 / 100 * 1em);
+    cursor: default;
+    transition: color 0.2s ease;
+  }
+
+  .disclaimerPanel {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + var(--disclaimer-panel-gap));
+    width: var(--disclaimer-panel-width);
+    margin: 0;
+    color: rgba(255, 255, 255, 0.42);
+    font-family: var(--intro-display);
+    font-size: 9px;
+    font-weight: normal;
+    font-synthesis: none;
+    line-height: 1.45;
+    text-transform: uppercase;
+    letter-spacing: calc(2 / 100 * 1em);
+    text-align: right;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px);
+    transition:
+      opacity 0.25s ease,
+      visibility 0.25s ease,
+      transform 0.25s ease,
+      color 0.2s ease;
+    pointer-events: none;
+  }
+}
+
+@media (min-width: 769px) and (hover: hover) {
+  .disclaimerDock:hover .disclaimerLink {
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  .disclaimerDock:hover .disclaimerPanel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .disclaimerDock {
+    display: none;
   }
 }
 
@@ -150,15 +184,17 @@
   display: grid;
   grid-template: 1fr / 1fr;
   box-sizing: border-box;
-  width: 100%;
-  aspect-ratio: var(--intro-video-aspect);
+  width: min(100%, calc(var(--intro-video-max-height) * 1080 / 2250));
+  max-width: 100%;
   max-height: var(--intro-video-max-height);
+  aspect-ratio: var(--intro-video-aspect);
   height: auto;
   overflow: hidden;
   border-radius: 8px;
   line-height: 0;
   background: #000;
   isolation: isolate;
+  box-shadow: var(--intro-frame-glow);
 }
 
 .video {
@@ -229,7 +265,7 @@ button.mediaOverlay {
 
 .overlayPercent {
   font-family: var(--intro-display);
-  font-size: 12px;
+  font-size: var(--intro-text-size);
   font-weight: normal;
   font-synthesis: none;
   line-height: 1.12;
@@ -257,7 +293,7 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
 
 .overlayPlayLabel {
   font-family: var(--intro-display);
-  font-size: 12px;
+  font-size: var(--intro-text-size);
   font-weight: normal;
   font-synthesis: none;
   text-transform: uppercase;
@@ -402,6 +438,7 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
   background: #000;
   border-radius: 0;
   overflow: visible;
+  box-shadow: none;
 }
 
 .videoStage:fullscreen .video {
@@ -426,13 +463,15 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: 100%;
-  aspect-ratio: var(--intro-video-aspect);
+  width: min(100%, calc(var(--intro-video-max-height) * 1080 / 2250));
+  max-width: 100%;
   max-height: var(--intro-video-max-height);
+  aspect-ratio: var(--intro-video-aspect);
   height: auto;
   overflow: hidden;
   border-radius: 8px;
   background: #000;
+  box-shadow: var(--intro-frame-glow);
 }
 
 .accessForm {
@@ -482,7 +521,7 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
   background: transparent;
   color: #fff;
   font-family: var(--intro-display);
-  font-size: 12px;
+  font-size: var(--intro-text-size);
   font-weight: normal;
   font-synthesis: none;
   text-transform: uppercase;
@@ -518,7 +557,7 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
 
 .accessSubmitLabel {
   font-family: var(--intro-display);
-  font-size: 12px;
+  font-size: var(--intro-text-size);
   font-weight: normal;
   font-synthesis: none;
   text-transform: uppercase;
@@ -530,7 +569,7 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
 .accessError {
   margin: 0;
   font-family: var(--intro-display);
-  font-size: 11px;
+  font-size: var(--intro-text-size);
   font-weight: normal;
   font-synthesis: none;
   text-transform: uppercase;
