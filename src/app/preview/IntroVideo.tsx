@@ -31,6 +31,7 @@ type IntroVideoProps = {
   loop?: boolean;
   onEnded?: () => void;
   stageClassName?: string;
+  preferMobileVideo?: boolean;
 };
 
 function OverlayStatus({ children }: { children: ReactNode }) {
@@ -186,7 +187,7 @@ function markVideoInline(video: HTMLVideoElement) {
 }
 
 export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function IntroVideo(
-  { loop = true, onEnded, stageClassName },
+  { loop = true, onEnded, stageClassName, preferMobileVideo },
   ref,
 ) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -229,8 +230,10 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
     const touch = isTouchDevice();
     setIsTouch(touch);
     isTouchRef.current = touch;
-    setVideoSrc(getIntroVideoSrc(shouldUseMobileIntro()));
-  }, []);
+    setVideoSrc(
+      getIntroVideoSrc(preferMobileVideo ?? shouldUseMobileIntro()),
+    );
+  }, [preferMobileVideo]);
 
   const scheduleControlsHide = useCallback(() => {
     if (!isTouchRef.current) return;

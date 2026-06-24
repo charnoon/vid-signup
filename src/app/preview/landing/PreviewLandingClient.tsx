@@ -1,37 +1,128 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type RefObject, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import homeStyles from "@/app/page.module.css";
 import introStyles from "../intro.module.css";
+import { previewLandingMobileVideoMediaQuery } from "../breakpoints";
 import { PreviewContent } from "../PreviewContent";
 import {
   HERO_COPY,
+  HERO_AUTO_ADVANCE_DELAY_MS,
+  LANDING_BACKGROUND_VIDEO_SRC,
   LANDING_DISCLAIMER,
+  LANDING_DISCLAIMER_MOBILE,
   TYPE_INTERVAL_MS,
   TYPE_START_DELAY_MS,
   VISION_FULL_TEXT,
   VISION_LAUNCH_COPY,
   VISION_LEAD_COPY,
 } from "./landing-copy";
-import { PreviewLandingMobileFeed } from "./PreviewLandingMobileFeed";
 import styles from "./preview-landing.module.css";
 import { useBackgroundVideoOnVisible } from "./use-background-video-on-visible";
 
+const FEED_SLIDE_COUNT = 3;
+
+function subscribePreferMobileVideo(onStoreChange: () => void) {
+  const media = window.matchMedia(previewLandingMobileVideoMediaQuery);
+  media.addEventListener("change", onStoreChange);
+  return () => media.removeEventListener("change", onStoreChange);
+}
+
+function getPreferMobileVideoSnapshot() {
+  return window.matchMedia(previewLandingMobileVideoMediaQuery).matches;
+}
+
+function getPreferMobileVideoServerSnapshot() {
+  return true;
+}
+
+function usePreferMobileVideo() {
+  return useSyncExternalStore(
+    subscribePreferMobileVideo,
+    getPreferMobileVideoSnapshot,
+    getPreferMobileVideoServerSnapshot,
+  );
+}
+
+function SlideBackground({ videoRef }: { videoRef: RefObject<HTMLVideoElement | null> }) {
+  return (
+    <div className={styles.slideBackground} aria-hidden>
+      <video
+        ref={videoRef}
+        className={styles.slideBackgroundVideo}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+      >
+        <source src={LANDING_BACKGROUND_VIDEO_SRC} type="video/mp4" />
+      </video>
+      <div className={styles.slideBackgroundVignette} />
+      <div className={styles.slideOverlay} />
+    </div>
+  );
+}
+
 export function PreviewLandingClient() {
+  const preferMobileVideo = usePreferMobileVideo();
   const [heroTypedText, setHeroTypedText] = useState("");
   const [visionTypedText, setVisionTypedText] = useState("");
-  const mainRef = useRef<HTMLElement>(null);
-  const heroSectionRef = useRef<HTMLElement>(null);
-  const visionSectionRef = useRef<HTMLElement>(null);
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const feedRef = useRef<HTMLElement>(null);
+  const heroSlideRef = useRef<HTMLElement>(null);
+  const videoSlideRef = useRef<HTMLElement>(null);
+  const visionSlideRef = useRef<HTMLElement>(null);
+  const heroBackgroundVideoRef = useRef<HTMLVideoElement>(null);
   const visionBackgroundVideoRef = useRef<HTMLVideoElement>(null);
   const heroTypeStartedRef = useRef(false);
+  const heroAutoAdvancedRef = useRef(false);
+  const activeSlideIndexRef = useRef(0);
   const visionTypeStartedRef = useRef(false);
 
   useEffect(() => {
-    const section = heroSectionRef.current;
-    const scrollRoot = mainRef.current;
-    if (!section || !scrollRoot) {
+    const feed = feedRef.current;
+    const slides = [heroSlideRef.current, videoSlideRef.current, visionSlideRef.current].filter(
+      Boolean,
+    ) as HTMLElement[];
+
+    if (!feed || slides.length === 0) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        let bestIndex = -1;
+        let bestRatio = 0;
+
+        for (const entry of entries) {
+          const index = slides.indexOf(entry.target as HTMLElement);
+          if (index >= 0 && entry.isIntersecting && entry.intersectionRatio > bestRatio) {
+            bestIndex = index;
+            bestRatio = entry.intersectionRatio;
+          }
+        }
+
+        if (bestIndex >= 0) {
+          activeSlideIndexRef.current = bestIndex;
+          setActiveSlideIndex(bestIndex);
+        }
+      },
+      { root: feed, threshold: [0, 0.35, 0.5, 0.65, 1] },
+    );
+
+    for (const slide of slides) {
+      observer.observe(slide);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const feed = feedRef.current;
+    const slide = heroSlideRef.current;
+    if (!feed || !slide) {
       return;
     }
 
@@ -58,6 +149,28 @@ export function PreviewLandingClient() {
         setHeroTypedText(HERO_COPY.slice(0, index));
         await wait(TYPE_INTERVAL_MS);
       }
+
+      if (cancelled || heroAutoAdvancedRef.current || activeSlideIndexRef.current !== 0) {
+        return;
+      }
+
+      await wait(HERO_AUTO_ADVANCE_DELAY_MS);
+      if (cancelled || heroAutoAdvancedRef.current || activeSlideIndexRef.current !== 0) {
+        return;
+      }
+
+      const feed = feedRef.current;
+      const videoSlide = videoSlideRef.current;
+      if (!feed || !videoSlide) {
+        return;
+      }
+
+      heroAutoAdvancedRef.current = true;
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      feed.scrollTo({
+        top: videoSlide.offsetTop,
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+      });
     };
 
     const observer = new IntersectionObserver(
@@ -66,10 +179,10 @@ export function PreviewLandingClient() {
           void runHeroTypewriter();
         }
       },
-      { root: scrollRoot, threshold: [0, 0.5, 1] },
+      { root: feed, threshold: [0, 0.5, 1] },
     );
 
-    observer.observe(section);
+    observer.observe(slide);
 
     return () => {
       cancelled = true;
@@ -80,10 +193,13 @@ export function PreviewLandingClient() {
     };
   }, []);
 
+  useBackgroundVideoOnVisible(feedRef, heroSlideRef, heroBackgroundVideoRef);
+  useBackgroundVideoOnVisible(feedRef, visionSlideRef, visionBackgroundVideoRef);
+
   useEffect(() => {
-    const section = visionSectionRef.current;
-    const scrollRoot = mainRef.current;
-    if (!section || !scrollRoot) {
+    const feed = feedRef.current;
+    const slide = visionSlideRef.current;
+    if (!feed || !slide) {
       return;
     }
 
@@ -118,10 +234,10 @@ export function PreviewLandingClient() {
           void runVisionTypewriter();
         }
       },
-      { root: scrollRoot, threshold: [0, 0.5, 1] },
+      { root: feed, threshold: [0, 0.5, 1] },
     );
 
-    observer.observe(section);
+    observer.observe(slide);
 
     return () => {
       cancelled = true;
@@ -131,8 +247,6 @@ export function PreviewLandingClient() {
       }
     };
   }, []);
-
-  useBackgroundVideoOnVisible(mainRef, visionSectionRef, visionBackgroundVideoRef);
 
   const visionLeadDisplayed = visionTypedText.slice(
     0,
@@ -144,74 +258,87 @@ export function PreviewLandingClient() {
       : "";
 
   return (
-    <>
-      <div className={styles.desktopLanding}>
-        <main ref={mainRef} className={styles.previewLanding}>
-          <div className={styles.fixedBrandBar}>
-            <div className={introStyles.brandRow}>
-              <a className={introStyles.brandVidLink} href="https://vid.global">
-                <span className={introStyles.brandVidText}>
-                  Vid<span className={homeStyles.blinkingDot}>.</span>
-                </span>
-              </a>
-              <p className={introStyles.previewTagline}>Private Preview</p>
-            </div>
-          </div>
-
-          <section
-            ref={heroSectionRef}
-            className={styles.heroSection}
-            aria-label="Preview video"
-          >
-            <div className={styles.blockCopyInner}>
-              <p className={styles.blockCopy} aria-live="polite">
-                {heroTypedText}
-              </p>
-            </div>
-
-            <div className={styles.videoColumn}>
-              <div className={`${styles.videoColumnInner} ${introStyles.introEmbed}`}>
-                <PreviewContent />
-              </div>
-            </div>
-          </section>
-
-          <section
-            ref={visionSectionRef}
-            className={styles.visionSection}
-            aria-label="Launch information"
-          >
-            <div className={styles.visionBackground} aria-hidden>
-              <video
-                ref={visionBackgroundVideoRef}
-                className={styles.visionBackgroundVideo}
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="auto"
-              >
-                <source src="/vid-hero-desktop.mp4" type="video/mp4" />
-              </video>
-              <div className={styles.visionBackgroundVignette} />
-              <div className={styles.visionOverlay} />
-            </div>
-
-            <div className={styles.blockCopyInner}>
-              <p className={styles.blockCopy}>{visionLeadDisplayed}</p>
-              <p className={styles.blockLaunchCopy} aria-live="polite">
-                {visionLaunchDisplayed}
-              </p>
-            </div>
-
-            <p className={styles.landingDisclaimer} role="note">
-              {LANDING_DISCLAIMER}
-            </p>
-          </section>
-        </main>
+    <div className={styles.landing}>
+      <div className={styles.fixedBrandBar}>
+        <div className={introStyles.brandRow}>
+          <a className={introStyles.brandVidLink} href="https://vid.global">
+            <span className={`${introStyles.brandVidText} ${styles.landingBrandVidText}`}>
+              Vid<span className={homeStyles.blinkingDot}>.</span>
+            </span>
+          </a>
+          <p className={`vid-display-bold ${styles.displayText} ${styles.tagline}`}>
+            Private Preview
+          </p>
+        </div>
       </div>
 
-      <PreviewLandingMobileFeed />
-    </>
+      <div className={styles.feedTimeline} aria-hidden>
+        {Array.from({ length: FEED_SLIDE_COUNT }, (_, index) => (
+          <span
+            key={index}
+            className={
+              index === activeSlideIndex
+                ? styles.feedTimelineSegmentActive
+                : styles.feedTimelineSegment
+            }
+          />
+        ))}
+      </div>
+
+      <main ref={feedRef} className={styles.feed} aria-label="Preview feed">
+        <section
+          ref={heroSlideRef}
+          className={`${styles.feedSlide} ${styles.feedSlideHero}`}
+          aria-label="Platform introduction"
+        >
+          <SlideBackground videoRef={heroBackgroundVideoRef} />
+
+          <div className={styles.feedSlideInner}>
+            <p className={styles.feedCopy} aria-live="polite">
+              {heroTypedText}
+            </p>
+          </div>
+        </section>
+
+        <section
+          ref={videoSlideRef}
+          className={`${styles.feedSlide} ${styles.feedSlideVideo}`}
+          aria-label="Preview video"
+        >
+          <PreviewContent
+            className={styles.feedVideoContent}
+            preferMobileVideo={preferMobileVideo}
+          />
+        </section>
+
+        <section
+          ref={visionSlideRef}
+          className={`${styles.feedSlide} ${styles.feedSlideVision}`}
+          aria-label="Launch information"
+        >
+          <SlideBackground videoRef={visionBackgroundVideoRef} />
+
+          <div className={styles.feedVisionCopy}>
+            <p className={styles.feedCopy}>{visionLeadDisplayed}</p>
+            <p className={styles.feedLaunchCopy} aria-live="polite">
+              {visionLaunchDisplayed}
+            </p>
+          </div>
+
+          <p
+            className={`vid-display-bold ${styles.feedDisclaimer} ${styles.displayText} ${styles.feedDisclaimerMobile}`}
+            role="note"
+          >
+            {LANDING_DISCLAIMER_MOBILE}
+          </p>
+          <p
+            className={`vid-display-bold ${styles.feedDisclaimer} ${styles.displayText} ${styles.feedDisclaimerDesktop}`}
+            role="note"
+          >
+            {LANDING_DISCLAIMER}
+          </p>
+        </section>
+      </main>
+    </div>
   );
 }

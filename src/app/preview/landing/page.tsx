@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import {
   INTRO_VIDEO_DESKTOP_SRC,
   INTRO_VIDEO_MOBILE_SRC,
+  previewLandingMobileVideoMediaQuery,
+  previewLandingOriginalVideoMediaQuery,
 } from "../intro-stream";
 import { PreviewLandingClient } from "./PreviewLandingClient";
 
@@ -21,14 +23,14 @@ export default function PreviewLandingPage() {
         as="video"
         href={INTRO_VIDEO_DESKTOP_SRC}
         type="video/mp4"
-        media="(min-width: 769px)"
+        media={previewLandingOriginalVideoMediaQuery}
       />
       <link
         rel="preload"
         as="video"
         href={INTRO_VIDEO_MOBILE_SRC}
         type="video/mp4"
-        media="(max-width: 768px)"
+        media={previewLandingMobileVideoMediaQuery}
       />
       <PreviewLandingClient />
     </>

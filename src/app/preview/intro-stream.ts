@@ -1,3 +1,5 @@
+import { previewLandingDesktopMediaQuery, previewLandingMobileMediaQuery } from "./breakpoints";
+
 export const INTRO_VIDEO_WIDTH = 1080;
 export const INTRO_VIDEO_HEIGHT = 2250;
 export const INTRO_VIDEO_ASPECT_RATIO = INTRO_VIDEO_WIDTH / INTRO_VIDEO_HEIGHT;
@@ -28,12 +30,20 @@ export function getIntroPoster() {
   return INTRO_VIDEO_POSTER_SRC;
 }
 
+export {
+  PREVIEW_LANDING_DESKTOP_MIN_WIDTH,
+  PREVIEW_LANDING_MOBILE_MAX_WIDTH,
+  PREVIEW_LANDING_MOBILE_VIDEO_MAX_WIDTH,
+  PREVIEW_LANDING_ORIGINAL_VIDEO_MIN_WIDTH,
+  previewLandingDesktopMediaQuery,
+  previewLandingMobileMediaQuery,
+  previewLandingMobileVideoMediaQuery,
+  previewLandingOriginalVideoMediaQuery,
+} from "./breakpoints";
+
 export function shouldUseMobileIntro() {
   if (typeof window === "undefined") return false;
 
-  return (
-    window.matchMedia("(max-width: 768px)").matches ||
-    window.matchMedia("(pointer: coarse)").matches ||
-    window.matchMedia("(hover: none)").matches
-  );
+  // /preview intro page: pick film by viewport. Landing always passes preferMobileVideo.
+  return window.matchMedia(previewLandingMobileMediaQuery).matches;
 }
