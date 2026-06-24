@@ -315,21 +315,19 @@ export function HomePageClient({ headlineText, ctaText }: HomeCopy) {
                             }}
                             disabled={isSubmitting || submitSucceeded}
                           />
-                          {showEmailOverlay ? (
-                            <div
-                              id={emailOverlayId}
-                              className={`${styles.emailSubmitOverlay} ${emailOverlayClass}`}
-                              role={
-                                formError && !submitSucceeded ? "alert" : "status"
-                              }
-                              aria-live="polite"
-                            >
-                              {submitSucceeded
-                                ? "Thanks for signing up to Vid."
-                                : formError}
-                            </div>
-                          ) : null}
                         </div>
+                        {showEmailOverlay ? (
+                          <div
+                            id={emailOverlayId}
+                            className={`${styles.emailSubmitOverlay} ${emailOverlayClass}`}
+                            role={
+                              formError && !submitSucceeded ? "alert" : "status"
+                            }
+                            aria-live="polite"
+                          >
+                            {submitSucceeded ? "SUCCESS!" : formError}
+                          </div>
+                        ) : null}
                         <button
                           type="submit"
                           className={styles.submitArrowInline}
@@ -337,7 +335,7 @@ export function HomePageClient({ headlineText, ctaText }: HomeCopy) {
                             isSubmitting || submitSucceeded || !canSubmitForm
                           }
                           aria-label={
-                            submitSucceeded ? "Success" : "Submit signup"
+                            submitSucceeded ? "SUCCESS!" : "Submit signup"
                           }
                         >
                           <span
@@ -385,7 +383,7 @@ export function HomePageClient({ headlineText, ctaText }: HomeCopy) {
                           id="signup-consent-notice"
                           className={styles.formConsentText}
                         >
-                          Receive platform updates and new releases.
+                          Receive platform updates and new releases
                         </span>
                       </label>
                     </div>

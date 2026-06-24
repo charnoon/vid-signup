@@ -9,6 +9,6 @@
 }
 
 .mark {
-  width: clamp(48px, 10vw, 96px);
+  width: clamp(38.4px, 8vw, 76.8px);
   height: auto;
 }

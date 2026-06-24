@@ -307,7 +307,6 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 420px;
   margin: 0 auto;
   min-height: calc(100dvh - 94px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   display: flex;
@@ -324,12 +323,16 @@
   flex-direction: column;
   justify-content: center;
   min-height: 0;
+  width: 100%;
+  max-width: 420px;
+  margin-inline: auto;
   margin-top: 40px;
 }
 
 .formLegalFooter {
   margin-top: auto;
   align-self: flex-start;
+  width: 100%;
   padding-top: 28px;
   padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
 }
@@ -534,44 +537,52 @@
 }
 
 .emailSubmitTrack {
+  position: relative;
   display: flex;
-  align-items: flex-end;
-  gap: 8px;
+  align-items: center;
+  gap: 0;
   width: 100%;
   box-sizing: border-box;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.42);
+  min-height: 44px;
+  padding: 4px 6px 4px 18px;
+  border: 1px solid rgba(0, 0, 0, 0.42);
+  border-radius: 9999px;
+  background: transparent;
   transition: border-color 160ms ease;
 }
 
-/* Fixed slot for the email line: status text overlays the typing area only (arrow stays). */
+/* Fixed slot for the email line: status text overlays the full pill. */
 .emailSubmitInputSlot {
   position: relative;
   flex: 1;
   min-width: 0;
-  min-height: 36px;
+  min-height: 32px;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
 }
 
 .emailSubmitInputSlot .emailSubmitInput {
   width: 100%;
 }
 
-/* Error: hide field text behind the opaque overlay so the message reads clearly. */
-.emailSubmitInputSlot:has(.emailSubmitOverlayError) .emailSubmitInput {
+.emailSubmitTrack:has(.emailSubmitOverlayError) .emailSubmitInput {
   opacity: 0;
   pointer-events: none;
 }
 
-/* Success: keep the input in the same visual slot (underline + area); only the label is overlaid. */
-.emailSubmitInputSlot:has(.emailSubmitOverlaySuccess) .emailSubmitInput {
+.emailSubmitTrack:has(.emailSubmitOverlaySuccess) .emailSubmitInput,
+.emailSubmitTrack:has(.emailSubmitOverlaySuccess) .submitArrowInline {
+  visibility: hidden;
   pointer-events: none;
+}
+
+.emailSubmitTrack:has(.emailSubmitOverlaySuccess) .emailSubmitInput {
   color: transparent !important;
   caret-color: transparent;
   -webkit-text-fill-color: transparent !important;
 }
 
-.emailSubmitInputSlot:has(.emailSubmitOverlaySuccess) .emailSubmitInput::placeholder {
+.emailSubmitTrack:has(.emailSubmitOverlaySuccess) .emailSubmitInput::placeholder {
   color: transparent !important;
   opacity: 0 !important;
   -webkit-text-fill-color: transparent !important;
@@ -582,28 +593,32 @@
   inset: 0;
   z-index: 2;
   display: flex;
-  align-items: flex-end;
-  padding-bottom: 7px;
+  align-items: center;
   box-sizing: border-box;
+  border-radius: inherit;
   pointer-events: none;
-  text-align: left;
-  background: rgba(248, 248, 248, 0.94);
+  text-align: center;
+  background: transparent;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .emailSubmitOverlaySuccess {
+  justify-content: center;
+  padding-inline: 18px;
   background: transparent;
-  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  font-size: clamp(0.95rem, 2.4vw, 1.1rem);
   line-height: 1.2;
-  letter-spacing: calc(0.35 / 100 * 1em);
-  text-transform: none;
+  letter-spacing: calc(2 / 100 * 1em);
+  text-transform: uppercase;
   color: rgba(0, 0, 0, 0.42);
   font-family: inherit;
   font-weight: var(--vid-display-weight);
 }
 
 .emailSubmitOverlayError {
+  justify-content: flex-start;
+  padding-inline: 18px 52px;
   font-size: 10px;
   line-height: 1.35;
   letter-spacing: calc(0.35 / 100 * 1em);
@@ -614,41 +629,60 @@
 }
 
 .emailSubmitTrack:focus-within {
-  border-bottom-color: #111;
+  border-color: rgba(0, 0, 0, 0.42);
 }
 
 .emailSubmitTrack:has(.emailSubmitInput:disabled) {
-  border-bottom-color: rgba(0, 0, 0, 0.22);
+  border-color: rgba(0, 0, 0, 0.42);
+  opacity: 0.55;
 }
 
 .emailSubmitInput {
   flex: 1;
   min-width: 0;
+  min-height: 32px;
   border-bottom: none !important;
-  padding-right: 0;
+  padding: 0;
+  background: transparent;
+  transform: translateY(1px);
 }
 
 .submitArrowInline {
+  position: relative;
+  z-index: 1;
   flex-shrink: 0;
-  align-self: flex-end;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   margin: 0;
-  padding: 4px 0 7px 10px;
+  padding: 0;
   border: none;
-  background: transparent;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
   color: #111;
   cursor: pointer;
+  transform: translateY(0);
   font-family: inherit;
   font-size: inherit;
   font-weight: var(--vid-display-weight);
   letter-spacing: inherit;
-  line-height: 1.18;
+  line-height: 1;
   transition:
     color 160ms ease,
-    opacity 160ms ease;
+    background-color 160ms ease;
+}
+
+.submitArrowInline:not(:disabled) {
+  background: rgba(0, 0, 0, 0.3);
+  color: #111;
+  cursor: pointer;
 }
 
 .submitArrowInline:hover:not(:disabled) {
-  opacity: 0.72;
+  background: rgba(0, 0, 0, 0.36);
 }
 
 .submitArrowInline:disabled {
@@ -663,7 +697,7 @@
 
 .submitArrowInlineGlyph {
   display: inline-block;
-  transform: translateY(1px);
+  transform: translate(0, -1px);
   line-height: 1;
 }
 
@@ -736,7 +770,7 @@
   line-height: 1;
   font-weight: var(--vid-display-weight);
   color: rgba(0, 0, 0, 0.42);
-  translate: 0 1.5px;
+  translate: 0 -0.5px;
 }
 
 .formConsentText {
@@ -746,7 +780,7 @@
   line-height: 1.45;
   letter-spacing: calc(0.4 / 100 * 1em);
   color: rgba(0, 0, 0, 0.42);
-  transform: translateY(2px);
+  transform: translateY(1px);
 }
 
 .formConsentLabel:has(.formConsentCheckboxInput:disabled) .formConsentText {
@@ -948,7 +982,7 @@
   }
 
   .formOverlayInner {
-    width: min(420px, 100%);
+    width: 100%;
     margin-inline: auto;
     min-height: calc(
       100dvh - 134px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
