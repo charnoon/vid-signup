@@ -818,13 +818,13 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
             {overlayShowsPlay ? (
               <span className={styles.overlayPlayPill}>
                 <span
-                  className={`${styles.overlayPlayLabel} ${temporaryDisplayBoldClassName}`}
+                  className={`vid-display-bold ${styles.overlayPlayLabel} ${temporaryDisplayBoldClassName}`}
                 >
                   PLAY
                 </span>
               </span>
             ) : (
-              <span className={`${styles.overlayPercent} ${temporaryDisplayBoldClassName}`}>
+              <span className={`vid-display-bold ${styles.overlayPercent} ${temporaryDisplayBoldClassName}`}>
                 {loadPercent}
               </span>
             )}
@@ -834,7 +834,7 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
       {phase === "playing" && isRebuffering ? (
         <div className={styles.mediaOverlay} role="status" aria-label="Buffering video">
           <OverlayStatus>
-            <span className={`${styles.overlayPercent} ${temporaryDisplayBoldClassName}`}>
+            <span className={`vid-display-bold ${styles.overlayPercent} ${temporaryDisplayBoldClassName}`}>
               {loadPercent}
             </span>
           </OverlayStatus>

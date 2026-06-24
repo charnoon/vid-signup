@@ -179,9 +179,9 @@
 }
 
 .mobileDisplayText {
-  font-family: var(--vid-display-bold), var(--vid-display);
+  font-family: "Temporary Display Bold", sans-serif;
   font-weight: 700;
-  font-variation-settings: "wght" 700;
+  font-style: normal;
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   color: rgba(255, 255, 255, 0.8);

@@ -164,9 +164,10 @@
   margin: 0;
   flex-shrink: 0;
   color: rgba(255, 255, 255, 0.72);
-  font-family: var(--intro-display);
+  font-family: "Temporary Display Bold", sans-serif;
   font-size: var(--intro-text-size);
-  font-weight: var(--vid-display-weight);
+  font-weight: 700;
+  font-style: normal;
   font-synthesis: none;
   letter-spacing: calc(0.4 / 100 * 1em);
   line-height: 1.2;
@@ -251,7 +252,7 @@
   .disclaimerMobileCopy {
     margin: 0;
     color: rgba(255, 255, 255, 0.72);
-    font-family: var(--intro-display);
+    font-family: "Temporary Display Bold", sans-serif;
     font-size: 12px;
     font-size: var(--disclaimer-text-size);
     font-weight: var(--vid-display-weight);
@@ -390,7 +391,7 @@
   border: 0;
   background: transparent;
   color: rgba(255, 255, 255, 0.42);
-  font-family: var(--intro-display);
+  font-family: "Temporary Display Bold", sans-serif;
   font-size: 12px;
   font-size: var(--disclaimer-text-size);
   font-weight: var(--vid-display-weight);
@@ -429,7 +430,7 @@
   width: var(--disclaimer-panel-width);
   margin: 0;
   color: rgba(255, 255, 255, 0.42);
-  font-family: var(--intro-display);
+  font-family: "Temporary Display Bold", sans-serif;
   font-size: 12px;
   font-size: var(--disclaimer-text-size);
   font-weight: var(--vid-display-weight);
@@ -598,7 +599,7 @@ button.mediaOverlay {
   -webkit-tap-highlight-color: transparent;
   appearance: none;
   -webkit-appearance: none;
-  font-family: var(--vid-display-bold-family);
+  font-family: "Temporary Display Bold", sans-serif;
   font-weight: 700;
   font-style: normal;
   font-synthesis: none;
@@ -612,7 +613,7 @@ button.mediaOverlay {
 }
 
 .overlayPercent {
-  font-family: var(--vid-display-bold-family);
+  font-family: "Temporary Display Bold", sans-serif;
   font-size: var(--intro-text-size);
   font-weight: 700;
   font-style: normal;
@@ -642,7 +643,7 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
 }
 
 .overlayPlayLabel {
-  font-family: var(--vid-display-bold-family);
+  font-family: "Temporary Display Bold", sans-serif;
   font-size: var(--intro-text-size);
   font-weight: 700;
   font-style: normal;
@@ -881,7 +882,7 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
   border: 0;
   background: transparent;
   color: #fff;
-  font-family: var(--intro-display);
+  font-family: "Temporary Display Bold", sans-serif;
   font-size: var(--intro-text-size);
   font-weight: var(--vid-display-weight);
   font-synthesis: none;
@@ -917,7 +918,7 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
 }
 
 .accessSubmitLabel {
-  font-family: var(--intro-display);
+  font-family: "Temporary Display Bold", sans-serif;
   font-size: var(--intro-text-size);
   font-weight: var(--vid-display-weight);
   font-synthesis: none;
@@ -929,7 +930,7 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
 
 .accessError {
   margin: 0;
-  font-family: var(--intro-display);
+  font-family: "Temporary Display Bold", sans-serif;
   font-size: var(--intro-text-size);
   font-weight: var(--vid-display-weight);
   font-synthesis: none;

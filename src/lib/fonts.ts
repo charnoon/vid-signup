@@ -19,3 +19,4 @@ export const temporaryDisplayBold = localFont({
 });
 
 export const temporaryDisplayBoldClassName = temporaryDisplayBold.className;
+export const temporaryDisplayClassName = temporaryDisplay.className;

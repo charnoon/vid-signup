@@ -129,9 +129,10 @@
   );
   margin: 0;
   color: rgba(255, 255, 255, 0.42);
-  font-family: var(--intro-display);
+  font-family: "Temporary Display Bold", sans-serif;
   font-size: 12px;
-  font-weight: var(--vid-display-weight);
+  font-weight: 700;
+  font-style: normal;
   font-synthesis: none;
   line-height: 1.2;
   letter-spacing: calc(2 / 100 * 1em);

@@ -13,7 +13,7 @@
   padding-right: calc(40px + env(safe-area-inset-right, 0px));
   background: #f8f8f8;
   color: #111;
-  font-family: var(--vid-display);
+  font-family: "Temporary Display Bold", sans-serif;
   font-size: 12pt;
   font-weight: var(--vid-display-weight);
   font-synthesis: none;

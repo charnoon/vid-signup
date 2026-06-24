@@ -2,7 +2,6 @@
   --background: #ffffff;
   --foreground: #171717;
   --vid-display-weight: 700;
-  --vid-display-bold-family: "Temporary Display Bold", var(--vid-display-bold), var(--vid-display);
   --vid-sans: "Neue Haas Unica W1G", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
@@ -54,11 +53,33 @@ a {
 }
 
 @font-face {
+  font-family: "Temporary Display";
+  src: url("/assets/fonts/TemporaryDisplayGX.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
   font-family: "Temporary Display Bold";
   src: url("/assets/fonts/TemporaryDisplay-Bold.otf") format("opentype");
   font-weight: 700;
   font-style: normal;
   font-display: block;
+}
+
+:where(.vid-display) {
+  font-family: "Temporary Display", sans-serif;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+:where(.vid-display-bold) {
+  font-family: "Temporary Display Bold", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
 }
 
 @media (prefers-color-scheme: dark) {
