@@ -15,6 +15,7 @@ import {
   VISION_LEAD_COPY,
 } from "./landing-copy";
 import styles from "./preview-landing-mobile.module.css";
+import { useBackgroundVideoOnVisible } from "./use-background-video-on-visible";
 
 const FEED_SLIDE_COUNT = 3;
 
@@ -26,6 +27,7 @@ export function PreviewLandingMobileFeed() {
   const heroSlideRef = useRef<HTMLElement>(null);
   const videoSlideRef = useRef<HTMLElement>(null);
   const visionSlideRef = useRef<HTMLElement>(null);
+  const visionBackgroundVideoRef = useRef<HTMLVideoElement>(null);
   const heroTypeStartedRef = useRef(false);
   const visionTypeStartedRef = useRef(false);
 
@@ -117,6 +119,8 @@ export function PreviewLandingMobileFeed() {
       }
     };
   }, []);
+
+  useBackgroundVideoOnVisible(feedRef, visionSlideRef, visionBackgroundVideoRef);
 
   useEffect(() => {
     const feed = feedRef.current;
@@ -233,12 +237,13 @@ export function PreviewLandingMobileFeed() {
         >
           <div className={styles.visionBackground} aria-hidden>
             <video
+              ref={visionBackgroundVideoRef}
               className={styles.visionBackgroundVideo}
               autoPlay
               loop
               muted
               playsInline
-              preload="metadata"
+              preload="auto"
             >
               <source src="/vid-hero-desktop.mp4" type="video/mp4" />
             </video>

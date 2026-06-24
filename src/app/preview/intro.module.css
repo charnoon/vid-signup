@@ -520,6 +520,7 @@
   box-sizing: border-box;
   width: min(
     100%,
+    var(--intro-video-max-width, 100%),
     calc(
       var(--intro-video-max-height) * var(--intro-video-frame-w, 1080) /
         var(--intro-video-frame-h, 2250)
@@ -812,6 +813,7 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
   box-sizing: border-box;
   width: min(
     100%,
+    var(--intro-video-max-width, 100%),
     calc(
       var(--intro-video-max-height) * var(--intro-video-frame-w, 1080) /
         var(--intro-video-frame-h, 2250)

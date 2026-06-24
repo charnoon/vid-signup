@@ -83,15 +83,20 @@
 }
 
 .feedVideoContent {
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding-inline: var(--landing-gutter-left) var(--landing-gutter-right);
   --intro-video-aspect: 9 / 16;
   --intro-video-frame-w: 9;
   --intro-video-frame-h: 16;
   --intro-video-max-height: 90dvh;
+  --intro-video-max-width: calc(
+    100vw - var(--landing-gutter-left) - var(--landing-gutter-right)
+  );
   --intro-frame-glow:
     0 0 0 1px rgba(255, 255, 255, 0.07),
     0 0 40px rgba(255, 255, 255, 0.06),
