@@ -165,7 +165,22 @@
 }
 
 .mobileDisplayText {
+  font-family: var(--vid-display-bold), var(--vid-display);
+  font-weight: 700;
+  font-variation-settings: "wght" 700;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
   color: rgba(255, 255, 255, 0.8);
+}
+
+.mobileTagline {
+  margin: 0;
+  flex-shrink: 0;
+  font-size: var(--intro-text-size);
+  letter-spacing: calc(0.4 / 100 * 1em);
+  line-height: 1.2;
+  white-space: nowrap;
+  transform: translateY(-1px);
 }
 
 .feedDisclaimer {
@@ -179,10 +194,7 @@
     calc(100vw - var(--landing-gutter-left) - var(--landing-gutter-right))
   );
   margin: 0;
-  font-family: var(--intro-display);
   font-size: 12px;
-  font-weight: var(--vid-display-weight);
-  font-synthesis: none;
   line-height: 1.2;
   text-transform: uppercase;
   letter-spacing: calc(2 / 100 * 1em);

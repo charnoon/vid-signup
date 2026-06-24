@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 
-import { temporaryDisplay } from "@/lib/fonts";
+import { temporaryDisplay, temporaryDisplayBold } from "@/lib/fonts";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -23,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={temporaryDisplay.variable}>
+    <html lang="en" className={`${temporaryDisplay.variable} ${temporaryDisplayBold.variable}`}>
       <body>{children}</body>
     </html>
   );

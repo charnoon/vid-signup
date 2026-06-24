@@ -147,9 +147,7 @@ export function PreviewLandingMobileFeed() {
               Vid<span className={homeStyles.blinkingDot}>.</span>
             </span>
           </a>
-          <p className={`${introStyles.previewTagline} ${styles.mobileDisplayText}`}>
-            Private Preview
-          </p>
+          <p className={`${styles.mobileDisplayText} ${styles.mobileTagline}`}>Private Preview</p>
         </div>
       </div>
 

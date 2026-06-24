@@ -8,3 +8,12 @@ export const temporaryDisplay = localFont({
   adjustFontFallback: false,
   declarations: [{ prop: "font-synthesis", value: "none" }],
 });
+
+export const temporaryDisplayBold = localFont({
+  src: "../../public/assets/fonts/TemporaryDisplay-Bold.otf",
+  display: "block",
+  weight: "700",
+  variable: "--vid-display-bold",
+  adjustFontFallback: false,
+  declarations: [{ prop: "font-synthesis", value: "none" }],
+});
