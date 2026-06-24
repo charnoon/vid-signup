@@ -25,6 +25,7 @@ export type IntroVideoHandle = {
 type IntroVideoProps = {
   loop?: boolean;
   onEnded?: () => void;
+  stageClassName?: string;
 };
 
 function OverlayStatus({ children }: { children: ReactNode }) {
@@ -180,7 +181,7 @@ function markVideoInline(video: HTMLVideoElement) {
 }
 
 export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function IntroVideo(
-  { loop = true, onEnded },
+  { loop = true, onEnded, stageClassName },
   ref,
 ) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -786,7 +787,7 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
   return (
     <div
       ref={stageRef}
-      className={styles.videoStage}
+      className={`${styles.videoStage} ${stageClassName ?? ""}`.trim()}
       onMouseLeave={onStageMouseLeave}
       onPointerDown={onStagePointerDown}
     >

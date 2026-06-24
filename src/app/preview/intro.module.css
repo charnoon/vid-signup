@@ -632,6 +632,14 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
   color: #fff;
 }
 
+.videoStageFeedMobile .overlayPlayLabel,
+.videoStageFeedMobile .overlayPercent {
+  font-family: var(--vid-display-bold, var(--vid-display));
+  font-weight: 700;
+  font-variation-settings: "wght" 700;
+  font-synthesis: none;
+}
+
 .controlsDock {
   grid-area: 1 / 1;
   align-self: end;

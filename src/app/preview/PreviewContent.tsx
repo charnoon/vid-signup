@@ -8,6 +8,7 @@ import styles from "./intro.module.css";
 type PreviewContentProps = {
   className?: string;
   videoLoop?: boolean;
+  videoStageClassName?: string;
   onVideoEnded?: () => void;
   videoRef?: RefObject<IntroVideoHandle | null>;
 };
@@ -15,6 +16,7 @@ type PreviewContentProps = {
 export function PreviewContent({
   className,
   videoLoop,
+  videoStageClassName,
   onVideoEnded,
   videoRef: externalVideoRef,
 }: PreviewContentProps) {
@@ -23,7 +25,12 @@ export function PreviewContent({
 
   return (
     <div className={`${styles.previewContent} ${className ?? ""}`.trim()}>
-      <IntroVideo ref={videoRef} loop={videoLoop} onEnded={onVideoEnded} />
+      <IntroVideo
+        ref={videoRef}
+        loop={videoLoop}
+        onEnded={onVideoEnded}
+        stageClassName={videoStageClassName}
+      />
     </div>
   );
 }

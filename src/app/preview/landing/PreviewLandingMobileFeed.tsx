@@ -16,14 +16,55 @@ import {
 } from "./landing-copy";
 import styles from "./preview-landing-mobile.module.css";
 
+const FEED_SLIDE_COUNT = 3;
+
 export function PreviewLandingMobileFeed() {
   const [heroTypedText, setHeroTypedText] = useState("");
   const [visionTypedText, setVisionTypedText] = useState("");
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const feedRef = useRef<HTMLElement>(null);
   const heroSlideRef = useRef<HTMLElement>(null);
+  const videoSlideRef = useRef<HTMLElement>(null);
   const visionSlideRef = useRef<HTMLElement>(null);
   const heroTypeStartedRef = useRef(false);
   const visionTypeStartedRef = useRef(false);
+
+  useEffect(() => {
+    const feed = feedRef.current;
+    const slides = [heroSlideRef.current, videoSlideRef.current, visionSlideRef.current].filter(
+      Boolean,
+    ) as HTMLElement[];
+
+    if (!feed || slides.length === 0) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        let bestIndex = -1;
+        let bestRatio = 0;
+
+        for (const entry of entries) {
+          const index = slides.indexOf(entry.target as HTMLElement);
+          if (index >= 0 && entry.isIntersecting && entry.intersectionRatio > bestRatio) {
+            bestIndex = index;
+            bestRatio = entry.intersectionRatio;
+          }
+        }
+
+        if (bestIndex >= 0) {
+          setActiveSlideIndex(bestIndex);
+        }
+      },
+      { root: feed, threshold: [0, 0.35, 0.5, 0.65, 1] },
+    );
+
+    for (const slide of slides) {
+      observer.observe(slide);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const feed = feedRef.current;
@@ -151,6 +192,19 @@ export function PreviewLandingMobileFeed() {
         </div>
       </div>
 
+      <div className={styles.feedTimeline} aria-hidden>
+        {Array.from({ length: FEED_SLIDE_COUNT }, (_, index) => (
+          <span
+            key={index}
+            className={
+              index === activeSlideIndex
+                ? styles.feedTimelineSegmentActive
+                : styles.feedTimelineSegment
+            }
+          />
+        ))}
+      </div>
+
       <main ref={feedRef} className={styles.mobileFeed} aria-label="Preview feed">
         <section
           ref={heroSlideRef}
@@ -165,10 +219,14 @@ export function PreviewLandingMobileFeed() {
         </section>
 
         <section
+          ref={videoSlideRef}
           className={`${styles.feedSlide} ${styles.feedSlideVideo}`}
           aria-label="Preview video"
         >
-          <PreviewContent className={styles.feedVideoContent} />
+          <PreviewContent
+            className={styles.feedVideoContent}
+            videoStageClassName={introStyles.videoStageFeedMobile}
+          />
         </section>
 
         <section
