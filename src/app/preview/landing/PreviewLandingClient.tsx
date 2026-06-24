@@ -17,11 +17,7 @@ import {
 import { PreviewLandingMobileFeed } from "./PreviewLandingMobileFeed";
 import styles from "./preview-landing.module.css";
 
-type PreviewLandingClientProps = {
-  initialHasAccess: boolean;
-};
-
-export function PreviewLandingClient({ initialHasAccess }: PreviewLandingClientProps) {
+export function PreviewLandingClient() {
   const [heroTypedText, setHeroTypedText] = useState("");
   const [visionTypedText, setVisionTypedText] = useState("");
   const mainRef = useRef<HTMLElement>(null);
@@ -171,7 +167,7 @@ export function PreviewLandingClient({ initialHasAccess }: PreviewLandingClientP
 
             <div className={styles.videoColumn}>
               <div className={`${styles.videoColumnInner} ${introStyles.introEmbed}`}>
-                <PreviewContent initialHasAccess={initialHasAccess} />
+                <PreviewContent />
               </div>
             </div>
           </section>
@@ -210,7 +206,7 @@ export function PreviewLandingClient({ initialHasAccess }: PreviewLandingClientP
         </main>
       </div>
 
-      <PreviewLandingMobileFeed initialHasAccess={initialHasAccess} />
+      <PreviewLandingMobileFeed />
     </>
   );
 }

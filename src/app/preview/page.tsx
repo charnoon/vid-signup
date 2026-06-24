@@ -6,7 +6,6 @@ import {
   INTRO_VIDEO_DESKTOP_SRC,
   INTRO_VIDEO_MOBILE_SRC,
 } from "./intro-stream";
-import { isIntroAccessConfigured } from "@/lib/intro-access";
 import homeStyles from "@/app/page.module.css";
 import styles from "./intro.module.css";
 
@@ -19,9 +18,6 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function IntroPage() {
-  // Temporary: show the password gate on every refresh when access is configured.
-  const initialHasAccess = !isIntroAccessConfigured();
-
   return (
     <main className={styles.page}>
       <link
@@ -50,7 +46,7 @@ export default async function IntroPage() {
       </div>
       <PreviewDisclaimerLink />
       <div className={styles.content}>
-        <PreviewContent initialHasAccess={initialHasAccess} />
+        <PreviewContent />
       </div>
     </main>
   );

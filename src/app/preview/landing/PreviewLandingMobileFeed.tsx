@@ -18,10 +18,6 @@ import {
 } from "./landing-copy";
 import styles from "./preview-landing-mobile.module.css";
 
-type PreviewLandingMobileFeedProps = {
-  initialHasAccess: boolean;
-};
-
 type HeroPhase = "copy" | "video";
 
 function scrollFeedToSlide(
@@ -32,7 +28,7 @@ function scrollFeedToSlide(
   feed.scrollTo({ top: slide.offsetTop, behavior });
 }
 
-export function PreviewLandingMobileFeed({ initialHasAccess }: PreviewLandingMobileFeedProps) {
+export function PreviewLandingMobileFeed() {
   const [heroTypedText, setHeroTypedText] = useState("");
   const [heroPhase, setHeroPhase] = useState<HeroPhase>("copy");
   const [visionTypedText, setVisionTypedText] = useState("");
@@ -43,10 +39,9 @@ export function PreviewLandingMobileFeed({ initialHasAccess }: PreviewLandingMob
   const heroTypeStartedRef = useRef(false);
   const visionTypeStartedRef = useRef(false);
   const heroPhaseRef = useRef<HeroPhase>("copy");
-  const hasAccessRef = useRef(initialHasAccess);
 
   const tryStartVideo = useCallback(() => {
-    if (hasAccessRef.current && heroPhaseRef.current === "video") {
+    if (heroPhaseRef.current === "video") {
       videoRef.current?.startFeedPlayback();
     }
   }, []);
@@ -191,16 +186,10 @@ export function PreviewLandingMobileFeed({ initialHasAccess }: PreviewLandingMob
             aria-hidden={heroPhase !== "video"}
           >
             <PreviewContent
-              initialHasAccess={initialHasAccess}
               className={styles.feedVideoContent}
               videoLoop={false}
-              feedAutoplay
               videoRef={videoRef}
               onVideoEnded={scrollToVisionSlide}
-              onAccessGranted={() => {
-                hasAccessRef.current = true;
-                tryStartVideo();
-              }}
             />
           </div>
 

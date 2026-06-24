@@ -4,7 +4,6 @@ import {
   INTRO_VIDEO_DESKTOP_SRC,
   INTRO_VIDEO_MOBILE_SRC,
 } from "../intro-stream";
-import { isIntroAccessConfigured } from "@/lib/intro-access";
 import { PreviewLandingClient } from "./PreviewLandingClient";
 
 export const metadata: Metadata = {
@@ -15,8 +14,6 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default function PreviewLandingPage() {
-  const initialHasAccess = !isIntroAccessConfigured();
-
   return (
     <>
       <link
@@ -33,7 +30,7 @@ export default function PreviewLandingPage() {
         type="video/mp4"
         media="(max-width: 768px)"
       />
-      <PreviewLandingClient initialHasAccess={initialHasAccess} />
+      <PreviewLandingClient />
     </>
   );
 }
