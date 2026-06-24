@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { Metadata, Viewport } from "next";
 
 import { temporaryDisplay, temporaryDisplayBold } from "@/lib/fonts";
@@ -23,7 +24,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${temporaryDisplay.variable} ${temporaryDisplayBold.variable}`}>
+    <html
+      lang="en"
+      className={`${temporaryDisplay.variable} ${temporaryDisplayBold.variable}`}
+      style={
+        {
+          "--font-display": temporaryDisplay.style.fontFamily,
+          "--font-display-bold": temporaryDisplayBold.style.fontFamily,
+        } as CSSProperties
+      }
+    >
       <body>{children}</body>
     </html>
   );

@@ -129,7 +129,7 @@
   );
   margin: 0;
   color: rgba(255, 255, 255, 0.42);
-  font-family: "Temporary Display Bold", sans-serif;
+  font-family: var(--font-display-bold, sans-serif);
   font-size: 12px;
   font-weight: 700;
   font-style: normal;

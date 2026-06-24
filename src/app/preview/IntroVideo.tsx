@@ -8,8 +8,10 @@ import {
   INTRO_VIDEO_WIDTH,
   shouldUseMobileIntro,
 } from "./intro-stream";
-import { temporaryDisplayBoldClassName } from "@/lib/fonts";
+import { temporaryDisplayBold } from "@/lib/fonts";
 import styles from "./intro.module.css";
+
+const overlayDisplayFont = temporaryDisplayBold.style;
 
 const LOAD_RAMP_MS = 2_500;
 const PLAY_RETRY_MS = 400;
@@ -812,19 +814,18 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
           ref={overlayRef}
           type="button"
           className={`${styles.mediaOverlay} ${styles.loadOverlay}`}
+          style={overlayDisplayFont}
           aria-label={overlayShowsPlay ? "Play video" : `Loading video ${loadPercent}%`}
         >
           <OverlayStatus>
             {overlayShowsPlay ? (
               <span className={styles.overlayPlayPill}>
-                <span
-                  className={`vid-display-bold ${styles.overlayPlayLabel} ${temporaryDisplayBoldClassName}`}
-                >
+                <span className={styles.overlayPlayLabel} style={overlayDisplayFont}>
                   PLAY
                 </span>
               </span>
             ) : (
-              <span className={`vid-display-bold ${styles.overlayPercent} ${temporaryDisplayBoldClassName}`}>
+              <span className={styles.overlayPercent} style={overlayDisplayFont}>
                 {loadPercent}
               </span>
             )}
@@ -834,7 +835,7 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
       {phase === "playing" && isRebuffering ? (
         <div className={styles.mediaOverlay} role="status" aria-label="Buffering video">
           <OverlayStatus>
-            <span className={`vid-display-bold ${styles.overlayPercent} ${temporaryDisplayBoldClassName}`}>
+            <span className={styles.overlayPercent} style={overlayDisplayFont}>
               {loadPercent}
             </span>
           </OverlayStatus>
