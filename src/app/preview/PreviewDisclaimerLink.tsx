@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import styles from "./intro.module.css";
 
-const DISCLAIMER =
+const DEFAULT_DISCLAIMER =
   "Videos and imagery featured in this presentation are included solely for demonstration and discussion purposes. No rights have been granted, and inclusion does not imply licensing, endorsement or participation in the platform.";
 
 function isMobileUi() {
@@ -15,9 +15,15 @@ function isMobileUi() {
 
 type PreviewDisclaimerLinkProps = {
   dockClassName?: string;
+  copy?: string;
+  copyBelowOnHover?: boolean;
 };
 
-export function PreviewDisclaimerLink({ dockClassName }: PreviewDisclaimerLinkProps = {}) {
+export function PreviewDisclaimerLink({
+  dockClassName,
+  copy = DEFAULT_DISCLAIMER,
+  copyBelowOnHover = false,
+}: PreviewDisclaimerLinkProps = {}) {
   const [open, setOpen] = useState(false);
   const [mobileUi, setMobileUi] = useState(false);
 
@@ -64,11 +70,13 @@ export function PreviewDisclaimerLink({ dockClassName }: PreviewDisclaimerLinkPr
             onClick={handleClose}
           />
           <div className={styles.disclaimerMobileSheet} role="dialog" aria-label="Usage notice">
-            <p className={styles.disclaimerMobileCopy}>{DISCLAIMER}</p>
+            <p className={styles.disclaimerMobileCopy}>{copy}</p>
           </div>
         </>
       ) : null}
-      <div className={`${styles.disclaimerDock} ${dockClassName ?? ""}`.trim()}>
+      <div
+        className={`${styles.disclaimerDock} ${copyBelowOnHover ? styles.disclaimerDockRevealBelow : ""} ${dockClassName ?? ""}`.trim()}
+      >
         <button
           type="button"
           className={`${styles.disclaimerLink} ${open && mobileUi ? styles.disclaimerLinkOpen : ""}`}
@@ -80,7 +88,7 @@ export function PreviewDisclaimerLink({ dockClassName }: PreviewDisclaimerLinkPr
         </button>
         {!mobileUi ? (
           <p className={styles.disclaimerPanel} role="note">
-            {DISCLAIMER}
+            {copy}
           </p>
         ) : null}
       </div>

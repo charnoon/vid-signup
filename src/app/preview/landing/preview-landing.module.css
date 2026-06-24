@@ -1,45 +1,207 @@
 .previewLanding {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
   background: #000;
+  --landing-gutter-left: calc(90px + env(safe-area-inset-left, 0px));
+  --landing-gutter-right: calc(40px + env(safe-area-inset-right, 0px));
   --intro-display: var(--vid-display);
   --intro-logo-height: clamp(11px, 2.7vw, 14px);
   --intro-tagline-gap: 10px;
   --intro-text-size: 16px;
+  box-sizing: border-box;
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  display: block;
+}
+
+.desktopLanding {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .desktopLanding {
+    display: none;
+  }
+}
+
+.heroSection {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  --intro-video-max-height: 95dvh;
+  padding-top: calc(48px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+  overflow: visible;
+}
+
+.visionSection {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  position: relative;
+  padding-top: calc(48px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+  overflow: visible;
+}
+
+.visionBackground {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.visionBackgroundVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
+}
+
+.visionBackgroundVignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 92% 88% at 50% 42%,
+    rgba(0, 0, 0, 0) 22%,
+    rgba(0, 0, 0, 0.35) 55%,
+    rgba(0, 0, 0, 0.92) 100%
+  );
+}
+
+.visionOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.blockCopyInner {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  width: 100%;
+  max-width: 420px;
+  margin-left: var(--landing-gutter-left);
+  margin-right: var(--landing-gutter-right);
+  transform: translateY(-50%);
+  display: grid;
+  gap: 14px;
+  min-height: 2.4em;
+}
+
+.blockCopyInner:has(.blockLaunchCopy) {
+  min-height: calc(2.4em + 14px + 1.2em);
+}
+
+.landingDisclaimer {
+  position: absolute;
+  left: var(--landing-gutter-left);
+  right: auto;
+  bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+  z-index: 3;
+  max-width: min(
+    280px,
+    calc(100vw - var(--landing-gutter-left) - var(--landing-gutter-right))
+  );
+  margin: 0;
+  color: rgba(255, 255, 255, 0.42);
+  font-family: var(--intro-display);
+  font-size: 12px;
+  font-weight: var(--vid-display-weight);
+  font-synthesis: none;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: calc(2 / 100 * 1em);
+  text-align: left;
+}
+
+.fixedBrandBar {
+  position: fixed;
+  z-index: 12;
+  top: calc(48px + env(safe-area-inset-top, 0px));
+  left: var(--landing-gutter-left);
+  right: auto;
+  pointer-events: none;
+}
+
+.blockCopy,
+.blockLaunchCopy {
+  margin: 0;
+  font-family: var(--vid-sans);
+  font-weight: 600;
+  font-synthesis: none;
+  letter-spacing: calc(-2.5 / 100 * 1em);
+  line-height: 1.2;
+  color: #fff;
+  font-size: clamp(24px, 3.2vw, 28px);
+  text-transform: none;
+  white-space: pre-wrap;
+}
+
+.blockCopy {
+  min-height: 2.4em;
+}
+
+.blockLaunchCopy {
+  min-height: 1.2em;
 }
 
 .videoColumn {
-  width: 100%;
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  width: min(
+    calc(var(--intro-video-max-height) * 1080 / 2250),
+    calc(100vw - var(--landing-gutter-left) - var(--landing-gutter-right))
+  );
+  max-width: 100%;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  margin-inline: auto;
 }
 
 .videoColumnInner {
   width: 100%;
+  --intro-video-max-height: 95dvh;
 }
 
-.landingHeadline {
-  white-space: normal;
-}
-
-.landingTyped {
-  white-space: pre-wrap;
+@media (prefers-reduced-motion: reduce) {
+  .previewLanding {
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+  }
 }
 
 @media (min-width: 901px) {
-  .previewLanding {
-    --intro-video-max-height: 90dvh;
-  }
-
-  .videoColumn {
-    position: fixed;
-    z-index: 1;
-    top: 50%;
-    left: 50%;
-    right: auto;
-    width: min(
-      calc(var(--intro-video-max-height) * 1080 / 2250),
-      calc(100vw - 180px)
-    );
-    max-width: 100%;
-    transform: translate(-50%, -50%);
-    pointer-events: auto;
+  .heroSection {
+    padding-top: calc(48px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -47,48 +209,30 @@
   .previewLanding {
     --intro-logo-height: clamp(13.91px, 3.5vw, 18.19px);
   }
+
+  .fixedBrandBar {
+    top: calc(7.5% + env(safe-area-inset-top, 0px));
+  }
 }
 
 @media (max-width: 900px) {
   .previewLanding {
-    align-content: start;
-    row-gap: 24px;
-    min-height: 100dvh;
-    padding-top: calc(7.5% + env(safe-area-inset-top, 0px));
-    padding-left: calc(7.5% + env(safe-area-inset-left, 0px));
-    padding-right: calc(7.5% + env(safe-area-inset-right, 0px));
-    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-    --intro-video-max-height: min(72dvh, calc(100dvh - 220px));
+    --landing-gutter-left: calc(7.5% + env(safe-area-inset-left, 0px));
+    --landing-gutter-right: calc(7.5% + env(safe-area-inset-right, 0px));
   }
 
-  .landingBrandBar {
-    display: none;
+  .heroSection {
+    padding-top: calc(7.5% + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .visionSection {
+    padding-top: calc(7.5% + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   }
 
   .landingDisclaimer {
-    display: none;
-  }
-
-  .landingHeadlineBlock {
-    margin-top: 0;
-  }
-
-  .videoColumn {
-    position: static;
-    grid-column: 1 / -1;
-    grid-row: 2;
-    top: auto;
-    right: auto;
-    width: 100%;
-    max-width: 100%;
-    transform: none;
-    margin-top: 0;
-    padding-bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 1 1 auto;
-    min-height: 0;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   }
 }
 

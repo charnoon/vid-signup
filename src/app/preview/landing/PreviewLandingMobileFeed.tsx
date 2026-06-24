@@ -1,0 +1,253 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import homeStyles from "@/app/page.module.css";
+import introStyles from "../intro.module.css";
+import { PreviewContent } from "../PreviewContent";
+import type { IntroVideoHandle } from "../IntroVideo";
+import {
+  FEED_AUTO_ADVANCE_MS,
+  HERO_COPY,
+  LANDING_DISCLAIMER,
+  TYPE_INTERVAL_MS,
+  TYPE_START_DELAY_MS,
+  VISION_FULL_TEXT,
+  VISION_LAUNCH_COPY,
+  VISION_LEAD_COPY,
+} from "./landing-copy";
+import styles from "./preview-landing-mobile.module.css";
+
+type PreviewLandingMobileFeedProps = {
+  initialHasAccess: boolean;
+};
+
+type HeroPhase = "copy" | "video";
+
+function scrollFeedToSlide(
+  feed: HTMLElement,
+  slide: HTMLElement,
+  behavior: ScrollBehavior = "smooth",
+) {
+  feed.scrollTo({ top: slide.offsetTop, behavior });
+}
+
+export function PreviewLandingMobileFeed({ initialHasAccess }: PreviewLandingMobileFeedProps) {
+  const [heroTypedText, setHeroTypedText] = useState("");
+  const [heroPhase, setHeroPhase] = useState<HeroPhase>("copy");
+  const [visionTypedText, setVisionTypedText] = useState("");
+  const feedRef = useRef<HTMLElement>(null);
+  const heroSlideRef = useRef<HTMLElement>(null);
+  const visionSlideRef = useRef<HTMLElement>(null);
+  const videoRef = useRef<IntroVideoHandle>(null);
+  const heroTypeStartedRef = useRef(false);
+  const visionTypeStartedRef = useRef(false);
+  const heroPhaseRef = useRef<HeroPhase>("copy");
+  const hasAccessRef = useRef(initialHasAccess);
+
+  const tryStartVideo = useCallback(() => {
+    if (hasAccessRef.current && heroPhaseRef.current === "video") {
+      videoRef.current?.startFeedPlayback();
+    }
+  }, []);
+
+  const beginVideoPhase = useCallback(() => {
+    heroPhaseRef.current = "video";
+    setHeroPhase("video");
+    tryStartVideo();
+  }, [tryStartVideo]);
+
+  const scrollToVisionSlide = useCallback(() => {
+    const feed = feedRef.current;
+    const slide = visionSlideRef.current;
+    if (!feed || !slide) return;
+
+    scrollFeedToSlide(feed, slide);
+  }, []);
+
+  useEffect(() => {
+    const feed = feedRef.current;
+    const slide = visionSlideRef.current;
+    if (!feed || !slide) {
+      return;
+    }
+
+    let cancelled = false;
+    const timers: number[] = [];
+
+    const wait = (ms: number) =>
+      new Promise<void>((resolve) => {
+        const timer = window.setTimeout(resolve, ms);
+        timers.push(timer);
+      });
+
+    const runVisionTypewriter = async () => {
+      if (visionTypeStartedRef.current || cancelled) {
+        return;
+      }
+      visionTypeStartedRef.current = true;
+
+      await wait(TYPE_START_DELAY_MS);
+      if (cancelled) return;
+
+      for (let index = 1; index <= VISION_FULL_TEXT.length; index += 1) {
+        if (cancelled) return;
+        setVisionTypedText(VISION_FULL_TEXT.slice(0, index));
+        await wait(TYPE_INTERVAL_MS);
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting && entry.intersectionRatio >= 0.5) {
+          void runVisionTypewriter();
+        }
+      },
+      { root: feed, threshold: [0, 0.5, 1] },
+    );
+
+    observer.observe(slide);
+
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+      for (const timer of timers) {
+        window.clearTimeout(timer);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const timers: number[] = [];
+
+    const wait = (ms: number) =>
+      new Promise<void>((resolve) => {
+        const timer = window.setTimeout(resolve, ms);
+        timers.push(timer);
+      });
+
+    const runHeroTypewriter = async () => {
+      if (heroTypeStartedRef.current || cancelled) {
+        return;
+      }
+      heroTypeStartedRef.current = true;
+
+      await wait(TYPE_START_DELAY_MS);
+      if (cancelled) return;
+
+      for (let index = 1; index <= HERO_COPY.length; index += 1) {
+        if (cancelled) return;
+        setHeroTypedText(HERO_COPY.slice(0, index));
+        await wait(TYPE_INTERVAL_MS);
+      }
+
+      await wait(FEED_AUTO_ADVANCE_MS);
+      if (cancelled) return;
+
+      beginVideoPhase();
+    };
+
+    void runHeroTypewriter();
+
+    return () => {
+      cancelled = true;
+      for (const timer of timers) {
+        window.clearTimeout(timer);
+      }
+    };
+  }, [beginVideoPhase]);
+
+  const visionLeadDisplayed = visionTypedText.slice(
+    0,
+    Math.min(visionTypedText.length, VISION_LEAD_COPY.length),
+  );
+  const visionLaunchDisplayed =
+    visionTypedText.length > VISION_LEAD_COPY.length
+      ? VISION_LAUNCH_COPY.slice(0, visionTypedText.length - VISION_LEAD_COPY.length)
+      : "";
+
+  return (
+    <div className={styles.mobileLanding}>
+      <div className={styles.fixedBrandBar}>
+        <div className={introStyles.brandRow}>
+          <a className={introStyles.brandVidLink} href="https://vid.global">
+            <span className={introStyles.brandVidText}>
+              Vid<span className={homeStyles.blinkingDot}>.</span>
+            </span>
+          </a>
+          <p className={introStyles.previewTagline}>Private Preview</p>
+        </div>
+      </div>
+
+      <main ref={feedRef} className={styles.mobileFeed} aria-label="Preview feed">
+        <section
+          ref={heroSlideRef}
+          className={`${styles.feedSlide} ${styles.feedSlideHero}`}
+          aria-label="Platform introduction and preview video"
+        >
+          <div
+            className={`${styles.feedSlideVideoLayer} ${heroPhase === "video" ? styles.feedSlideVideoLayerVisible : ""}`}
+            aria-hidden={heroPhase !== "video"}
+          >
+            <PreviewContent
+              initialHasAccess={initialHasAccess}
+              className={styles.feedVideoContent}
+              videoLoop={false}
+              feedAutoplay
+              videoRef={videoRef}
+              onVideoEnded={scrollToVisionSlide}
+              onAccessGranted={() => {
+                hasAccessRef.current = true;
+                tryStartVideo();
+              }}
+            />
+          </div>
+
+          <div
+            className={`${styles.feedSlideCopyLayer} ${heroPhase === "video" ? styles.feedSlideCopyLayerHidden : ""}`}
+            aria-hidden={heroPhase === "video"}
+          >
+            <div className={styles.feedSlideInner}>
+              <p className={styles.feedCopy} aria-live="polite">
+                {heroTypedText}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section
+          ref={visionSlideRef}
+          className={`${styles.feedSlide} ${styles.feedSlideVision}`}
+          aria-label="Launch information"
+        >
+          <div className={styles.visionBackground} aria-hidden>
+            <video
+              className={styles.visionBackgroundVideo}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+            >
+              <source src="/vid-hero-desktop.mp4" type="video/mp4" />
+            </video>
+            <div className={styles.visionBackgroundVignette} />
+            <div className={styles.visionOverlay} />
+          </div>
+
+          <div className={styles.feedVisionCopy}>
+            <p className={styles.feedCopy}>{visionLeadDisplayed}</p>
+            <p className={styles.feedLaunchCopy} aria-live="polite">
+              {visionLaunchDisplayed}
+            </p>
+          </div>
+
+          <p className={styles.feedDisclaimer} role="note">
+            {LANDING_DISCLAIMER}
+          </p>
+        </section>
+      </main>
+    </div>
+  );
+}

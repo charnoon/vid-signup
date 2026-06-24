@@ -1,0 +1,225 @@
+.mobileLanding {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: #000;
+  --landing-gutter-left: calc(7.5% + env(safe-area-inset-left, 0px));
+  --landing-gutter-right: calc(7.5% + env(safe-area-inset-right, 0px));
+  --intro-display: var(--vid-display);
+  --intro-logo-height: clamp(13.91px, 3.5vw, 18.19px);
+  --intro-tagline-gap: 10px;
+  --intro-text-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .mobileLanding {
+    display: block;
+  }
+}
+
+.mobileFeed {
+  box-sizing: border-box;
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  background: #000;
+}
+
+.feedSlide {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  overflow: hidden;
+}
+
+.feedSlideHero {
+  background: #000;
+}
+
+.feedSlideCopyLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: #000;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.feedSlideCopyLayerHidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.feedSlideVideoLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.feedSlideVideoLayerVisible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.feedSlideInner {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  transform: translateY(-50%);
+  padding-inline: var(--landing-gutter-left) var(--landing-gutter-right);
+  max-width: 420px;
+}
+
+.feedCopy,
+.feedLaunchCopy {
+  margin: 0;
+  font-family: var(--vid-sans);
+  font-weight: 600;
+  font-synthesis: none;
+  letter-spacing: calc(-2.5 / 100 * 1em);
+  line-height: 1.2;
+  color: #fff;
+  font-size: clamp(24px, 6.5vw, 28px);
+  text-transform: none;
+  white-space: pre-wrap;
+}
+
+.feedSlideInner .feedCopy {
+  min-height: 2.4em;
+}
+
+.feedVideoContent {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  --intro-video-max-height: 100dvh;
+}
+
+.feedVideoContent :global(.videoStage) {
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  aspect-ratio: auto;
+}
+
+.feedVideoContent :global(.video) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.feedSlideVision {
+  color: #fff;
+}
+
+.visionBackground {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.visionBackgroundVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.visionBackgroundVignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 92% 88% at 50% 42%,
+    rgba(0, 0, 0, 0) 22%,
+    rgba(0, 0, 0, 0.35) 55%,
+    rgba(0, 0, 0, 0.92) 100%
+  );
+}
+
+.visionOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.feedVisionCopy {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  transform: translateY(-50%);
+  display: grid;
+  gap: 14px;
+  padding-inline: var(--landing-gutter-left) var(--landing-gutter-right);
+  max-width: 420px;
+}
+
+.feedLaunchCopy {
+  min-height: 1.2em;
+}
+
+.feedDisclaimer {
+  position: absolute;
+  left: var(--landing-gutter-left);
+  right: auto;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 3;
+  max-width: min(
+    280px,
+    calc(100vw - var(--landing-gutter-left) - var(--landing-gutter-right))
+  );
+  margin: 0;
+  color: rgba(255, 255, 255, 0.42);
+  font-family: var(--intro-display);
+  font-size: 12px;
+  font-weight: var(--vid-display-weight);
+  font-synthesis: none;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: calc(2 / 100 * 1em);
+  text-align: left;
+}
+
+.fixedBrandBar {
+  position: fixed;
+  z-index: 12;
+  top: calc(20px + env(safe-area-inset-top, 0px));
+  left: var(--landing-gutter-left);
+  right: auto;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobileFeed {
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+  }
+}

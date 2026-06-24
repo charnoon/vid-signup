@@ -18,7 +18,13 @@ type IntroPhase = "loading" | "playing";
 
 export type IntroVideoHandle = {
   startPlaybackFromGesture: () => void;
+  startFeedPlayback: () => void;
   pauseFromAccessDenied: () => void;
+};
+
+type IntroVideoProps = {
+  loop?: boolean;
+  onEnded?: () => void;
 };
 
 function OverlayStatus({ children }: { children: ReactNode }) {
@@ -173,7 +179,10 @@ function markVideoInline(video: HTMLVideoElement) {
   video.setAttribute("webkit-playsinline", "true");
 }
 
-export const IntroVideo = forwardRef<IntroVideoHandle>(function IntroVideo(_props, ref) {
+export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function IntroVideo(
+  { loop = true, onEnded },
+  ref,
+) {
   const stageRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const overlayRef = useRef<HTMLButtonElement>(null);
@@ -190,6 +199,7 @@ export const IntroVideo = forwardRef<IntroVideoHandle>(function IntroVideo(_prop
   const isTouchRef = useRef(false);
   const controlsHideTimerRef = useRef<number | null>(null);
   const startPlaybackFromGestureRef = useRef<() => void>(() => {});
+  const startFeedPlaybackRef = useRef<() => void>(() => {});
 
   const [isTouch, setIsTouch] = useState(false);
   const [phase, setPhase] = useState<IntroPhase>("loading");
@@ -315,9 +325,56 @@ export const IntroVideo = forwardRef<IntroVideoHandle>(function IntroVideo(_prop
     });
   };
 
+  startFeedPlaybackRef.current = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const now = Date.now();
+    if (now - lastPlayAttemptRef.current < PLAY_RETRY_MS) return;
+    lastPlayAttemptRef.current = now;
+
+    markVideoInline(video);
+    setPlayRequested(true);
+    setShowPlayIcon(false);
+    loadCompleteRef.current = true;
+    maxDisplayPercentRef.current = 100;
+    setLoadPercent(100);
+
+    if (isTouchRef.current) {
+      shouldEnterMobileFullscreenRef.current = true;
+      video.muted = true;
+      setIsMuted(true);
+      unlockMutedOnFirstPlayRef.current = true;
+    } else {
+      video.muted = false;
+      setIsMuted(false);
+      unlockMutedOnFirstPlayRef.current = false;
+    }
+
+    video.volume = 1;
+
+    const playPromise = video.play();
+    if (!playPromise) return;
+
+    playPromise.catch(() => {
+      video.muted = true;
+      unlockMutedOnFirstPlayRef.current = true;
+
+      void video.play().catch(() => {
+        setPlayRequested(false);
+        setShowPlayIcon(true);
+        unlockMutedOnFirstPlayRef.current = false;
+        shouldEnterMobileFullscreenRef.current = false;
+      });
+    });
+  };
+
   useImperativeHandle(ref, () => ({
     startPlaybackFromGesture: () => {
       startPlaybackFromGestureRef.current();
+    },
+    startFeedPlayback: () => {
+      startFeedPlaybackRef.current();
     },
     pauseFromAccessDenied: () => {
       const video = videoRef.current;
@@ -336,6 +393,25 @@ export const IntroVideo = forwardRef<IntroVideoHandle>(function IntroVideo(_prop
       setIsRebuffering(false);
     },
   }));
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.loop = loop;
+  }, [loop, videoSrc]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !onEnded) return;
+
+    const handleEnded = () => {
+      onEnded();
+    };
+
+    video.addEventListener("ended", handleEnded);
+    return () => video.removeEventListener("ended", handleEnded);
+  }, [onEnded, videoSrc]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -720,7 +796,7 @@ export const IntroVideo = forwardRef<IntroVideoHandle>(function IntroVideo(_prop
         src={videoSrc}
         width={INTRO_VIDEO_WIDTH}
         height={INTRO_VIDEO_HEIGHT}
-        loop
+        loop={loop}
         playsInline
         preload="auto"
         poster=""
