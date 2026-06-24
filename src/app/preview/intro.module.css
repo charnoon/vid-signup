@@ -596,8 +596,11 @@ button.mediaOverlay {
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  font-family: var(--vid-display-bold), var(--vid-display);
+  appearance: none;
+  -webkit-appearance: none;
+  font-family: var(--vid-display-bold-family);
   font-weight: 700;
+  font-style: normal;
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
 }
@@ -609,9 +612,10 @@ button.mediaOverlay {
 }
 
 .overlayPercent {
-  font-family: var(--vid-display-bold), var(--vid-display);
+  font-family: var(--vid-display-bold-family);
   font-size: var(--intro-text-size);
   font-weight: 700;
+  font-style: normal;
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   line-height: 1.12;
@@ -638,9 +642,10 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
 }
 
 .overlayPlayLabel {
-  font-family: var(--vid-display-bold), var(--vid-display);
+  font-family: var(--vid-display-bold-family);
   font-size: var(--intro-text-size);
   font-weight: 700;
+  font-style: normal;
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   text-transform: uppercase;

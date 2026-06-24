@@ -10,6 +10,8 @@
   --intro-logo-height: clamp(13.91px, 3.5vw, 18.19px);
   --intro-tagline-gap: 10px;
   --intro-text-size: 16px;
+  --landing-slide-height: 100lvh;
+  --landing-slide-height: 100dvh;
 }
 
 @media (max-width: 768px) {
@@ -20,7 +22,9 @@
 
 .mobileFeed {
   box-sizing: border-box;
-  height: 100dvh;
+  height: var(--landing-slide-height);
+  min-height: var(--landing-slide-height);
+  min-height: -webkit-fill-available;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior-y: contain;
@@ -33,8 +37,10 @@
   position: relative;
   box-sizing: border-box;
   width: 100%;
-  height: 100dvh;
-  min-height: 100dvh;
+  height: var(--landing-slide-height);
+  min-height: var(--landing-slide-height);
+  min-height: -webkit-fill-available;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   scroll-snap-align: start;
   scroll-snap-stop: always;
   overflow: hidden;
@@ -195,7 +201,7 @@
   position: absolute;
   left: var(--landing-gutter-left);
   right: auto;
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  bottom: 16px;
   z-index: 3;
   max-width: min(
     280px,

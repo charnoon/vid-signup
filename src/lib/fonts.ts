@@ -17,3 +17,5 @@ export const temporaryDisplayBold = localFont({
   adjustFontFallback: false,
   declarations: [{ prop: "font-synthesis", value: "none" }],
 });
+
+export const temporaryDisplayBoldClassName = temporaryDisplayBold.className;
