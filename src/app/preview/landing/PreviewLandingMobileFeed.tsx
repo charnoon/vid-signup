@@ -223,10 +223,7 @@ export function PreviewLandingMobileFeed() {
           className={`${styles.feedSlide} ${styles.feedSlideVideo}`}
           aria-label="Preview video"
         >
-          <PreviewContent
-            className={styles.feedVideoContent}
-            videoStageClassName={introStyles.videoStageFeedMobile}
-          />
+          <PreviewContent className={styles.feedVideoContent} />
         </section>
 
         <section

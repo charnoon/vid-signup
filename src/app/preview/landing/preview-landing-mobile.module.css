@@ -49,6 +49,7 @@
   align-items: center;
   justify-content: center;
   background: #000;
+  overflow: visible;
 }
 
 .feedSlideInner {
@@ -88,7 +89,12 @@
   align-items: center;
   justify-content: center;
   --intro-video-aspect: 1080 / 2250;
-  --intro-video-max-height: min(72dvh, calc(100dvh - 140px));
+  --intro-video-max-height: 90dvh;
+  --intro-frame-glow:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 0 40px rgba(255, 255, 255, 0.06),
+    0 0 96px rgba(255, 255, 255, 0.035),
+    0 0 160px rgba(255, 255, 255, 0.02);
   --intro-text-size: 16px;
   --intro-display: var(--vid-display);
 }
@@ -148,6 +154,11 @@
   gap: 14px;
   padding-inline: var(--landing-gutter-left) var(--landing-gutter-right);
   max-width: 420px;
+  min-height: calc(2.4em + 14px + 1.2em);
+}
+
+.feedVisionCopy .feedCopy {
+  min-height: 2.4em;
 }
 
 .feedLaunchCopy {

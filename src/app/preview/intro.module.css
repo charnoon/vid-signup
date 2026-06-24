@@ -585,6 +585,10 @@ button.mediaOverlay {
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  font-family: var(--vid-display-bold), var(--vid-display);
+  font-weight: 700;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
 }
 
 .overlayStatus {
@@ -594,10 +598,11 @@ button.mediaOverlay {
 }
 
 .overlayPercent {
-  font-family: var(--intro-display);
+  font-family: var(--vid-display-bold), var(--vid-display);
   font-size: var(--intro-text-size);
-  font-weight: var(--vid-display-weight);
+  font-weight: 700;
   font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
   line-height: 1.12;
   letter-spacing: calc(2 / 100 * 1em);
   color: #fff;
@@ -622,22 +627,15 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
 }
 
 .overlayPlayLabel {
-  font-family: var(--intro-display);
+  font-family: var(--vid-display-bold), var(--vid-display);
   font-size: var(--intro-text-size);
-  font-weight: var(--vid-display-weight);
+  font-weight: 700;
   font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
   text-transform: uppercase;
   letter-spacing: calc(2 / 100 * 1em);
   line-height: 1.12;
   color: #fff;
-}
-
-.videoStageFeedMobile .overlayPlayLabel,
-.videoStageFeedMobile .overlayPercent {
-  font-family: var(--vid-display-bold, var(--vid-display));
-  font-weight: 700;
-  font-variation-settings: "wght" 700;
-  font-synthesis: none;
 }
 
 .controlsDock {
