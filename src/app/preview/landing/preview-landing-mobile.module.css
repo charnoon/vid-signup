@@ -179,7 +179,7 @@
 }
 
 .mobileDisplayText {
-  font-family: var(--font-display-bold, sans-serif);
+  font-family: var(--vid-display-bold), "Temporary Display Bold", sans-serif;
   font-weight: 700;
   font-style: normal;
   font-synthesis: none;

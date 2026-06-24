@@ -8,10 +8,12 @@ import {
   INTRO_VIDEO_WIDTH,
   shouldUseMobileIntro,
 } from "./intro-stream";
-import { temporaryDisplayBold } from "@/lib/fonts";
+import { temporaryDisplayBoldClassName } from "@/lib/fonts";
 import styles from "./intro.module.css";
 
-const overlayDisplayFont = temporaryDisplayBold.style;
+const overlayDisplayFont = {
+  fontFamily: '"Temporary Display Bold", sans-serif',
+} as const;
 
 const LOAD_RAMP_MS = 2_500;
 const PLAY_RETRY_MS = 400;
@@ -813,19 +815,25 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
         <button
           ref={overlayRef}
           type="button"
-          className={`${styles.mediaOverlay} ${styles.loadOverlay}`}
+          className={`${styles.mediaOverlay} ${styles.loadOverlay} ${temporaryDisplayBoldClassName}`}
           style={overlayDisplayFont}
           aria-label={overlayShowsPlay ? "Play video" : `Loading video ${loadPercent}%`}
         >
           <OverlayStatus>
             {overlayShowsPlay ? (
               <span className={styles.overlayPlayPill}>
-                <span className={styles.overlayPlayLabel} style={overlayDisplayFont}>
+                <span
+                  className={`${styles.overlayPlayLabel} ${temporaryDisplayBoldClassName}`}
+                  style={overlayDisplayFont}
+                >
                   PLAY
                 </span>
               </span>
             ) : (
-              <span className={styles.overlayPercent} style={overlayDisplayFont}>
+              <span
+                className={`${styles.overlayPercent} ${temporaryDisplayBoldClassName}`}
+                style={overlayDisplayFont}
+              >
                 {loadPercent}
               </span>
             )}
@@ -835,7 +843,10 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
       {phase === "playing" && isRebuffering ? (
         <div className={styles.mediaOverlay} role="status" aria-label="Buffering video">
           <OverlayStatus>
-            <span className={styles.overlayPercent} style={overlayDisplayFont}>
+            <span
+              className={`${styles.overlayPercent} ${temporaryDisplayBoldClassName}`}
+              style={overlayDisplayFont}
+            >
               {loadPercent}
             </span>
           </OverlayStatus>

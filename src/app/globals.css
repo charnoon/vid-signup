@@ -52,14 +52,30 @@ a {
   text-decoration: none;
 }
 
+@font-face {
+  font-family: "Temporary Display";
+  src: url("/assets/fonts/TemporaryDisplayGX.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "Temporary Display Bold";
+  src: url("/assets/fonts/TemporaryDisplay-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+
 :where(.vid-display) {
-  font-family: var(--font-display, sans-serif);
+  font-family: var(--vid-display), "Temporary Display", sans-serif;
   font-synthesis: none;
   -webkit-font-smoothing: antialiased;
 }
 
 :where(.vid-display-bold) {
-  font-family: var(--font-display-bold, sans-serif);
+  font-family: var(--vid-display-bold), "Temporary Display Bold", sans-serif;
   font-weight: 700;
   font-style: normal;
   font-synthesis: none;
