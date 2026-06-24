@@ -7,6 +7,7 @@ import introStyles from "../intro.module.css";
 import { PreviewContent } from "../PreviewContent";
 import {
   HERO_COPY,
+  HERO_AUTO_ADVANCE_DELAY_MS,
   LANDING_DISCLAIMER,
   TYPE_INTERVAL_MS,
   TYPE_START_DELAY_MS,
@@ -29,6 +30,8 @@ export function PreviewLandingMobileFeed() {
   const visionSlideRef = useRef<HTMLElement>(null);
   const visionBackgroundVideoRef = useRef<HTMLVideoElement>(null);
   const heroTypeStartedRef = useRef(false);
+  const heroAutoAdvancedRef = useRef(false);
+  const activeSlideIndexRef = useRef(0);
   const visionTypeStartedRef = useRef(false);
 
   useEffect(() => {
@@ -55,6 +58,7 @@ export function PreviewLandingMobileFeed() {
         }
 
         if (bestIndex >= 0) {
+          activeSlideIndexRef.current = bestIndex;
           setActiveSlideIndex(bestIndex);
         }
       },
@@ -98,6 +102,28 @@ export function PreviewLandingMobileFeed() {
         setHeroTypedText(HERO_COPY.slice(0, index));
         await wait(TYPE_INTERVAL_MS);
       }
+
+      if (cancelled || heroAutoAdvancedRef.current || activeSlideIndexRef.current !== 0) {
+        return;
+      }
+
+      await wait(HERO_AUTO_ADVANCE_DELAY_MS);
+      if (cancelled || heroAutoAdvancedRef.current || activeSlideIndexRef.current !== 0) {
+        return;
+      }
+
+      const feed = feedRef.current;
+      const videoSlide = videoSlideRef.current;
+      if (!feed || !videoSlide) {
+        return;
+      }
+
+      heroAutoAdvancedRef.current = true;
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      feed.scrollTo({
+        top: videoSlide.offsetTop,
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+      });
     };
 
     const observer = new IntersectionObserver(
