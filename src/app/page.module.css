@@ -932,6 +932,12 @@
   }
 }
 
+@media (min-width: 900px) {
+  .formOverlayMain {
+    transform: translateY(-30px);
+  }
+}
+
 @media (orientation: portrait) {
   .landing {
     padding-left: calc(48px + env(safe-area-inset-left, 0px));
@@ -973,7 +979,6 @@
     top: calc(88px + env(safe-area-inset-top, 0px));
   }
 
-  /* Center the form column; width:100% + max-width alone stays full-bleed inside padding */
   .formOverlay {
     padding-top: calc(114px + env(safe-area-inset-top, 0px));
     display: flex;
