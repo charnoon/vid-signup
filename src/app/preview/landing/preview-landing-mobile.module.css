@@ -88,7 +88,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  --intro-video-aspect: 1080 / 2250;
+  --intro-video-aspect: 9 / 16;
+  --intro-video-frame-w: 9;
+  --intro-video-frame-h: 16;
   --intro-video-max-height: 90dvh;
   --intro-frame-glow:
     0 0 0 1px rgba(255, 255, 255, 0.07),

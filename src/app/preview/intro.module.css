@@ -13,6 +13,8 @@
     0 0 160px rgba(255, 255, 255, 0.02);
   --intro-display: var(--vid-display);
   --intro-video-aspect: 1080 / 2250;
+  --intro-video-frame-w: 1080;
+  --intro-video-frame-h: 2250;
   --intro-video-max-height: 90vh;
   --intro-video-max-height: 90dvh;
   --intro-inset-inline-start: calc(
@@ -43,6 +45,8 @@
 .introEmbed {
   --intro-display: var(--vid-display);
   --intro-video-aspect: 1080 / 2250;
+  --intro-video-frame-w: 1080;
+  --intro-video-frame-h: 2250;
   --intro-video-max-height: min(90dvh, calc(100dvh - 96px));
   --intro-text-size: 16px;
   --intro-frame-glow:
@@ -514,7 +518,13 @@
   display: grid;
   grid-template: 1fr / 1fr;
   box-sizing: border-box;
-  width: min(100%, calc(var(--intro-video-max-height) * 1080 / 2250));
+  width: min(
+    100%,
+    calc(
+      var(--intro-video-max-height) * var(--intro-video-frame-w, 1080) /
+        var(--intro-video-frame-h, 2250)
+    )
+  );
   max-width: 100%;
   max-height: var(--intro-video-max-height);
   aspect-ratio: var(--intro-video-aspect);
@@ -800,7 +810,13 @@ button.mediaOverlay:focus-visible .overlayPlayPill {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: min(100%, calc(var(--intro-video-max-height) * 1080 / 2250));
+  width: min(
+    100%,
+    calc(
+      var(--intro-video-max-height) * var(--intro-video-frame-w, 1080) /
+        var(--intro-video-frame-h, 2250)
+    )
+  );
   max-width: 100%;
   max-height: var(--intro-video-max-height);
   aspect-ratio: var(--intro-video-aspect);
