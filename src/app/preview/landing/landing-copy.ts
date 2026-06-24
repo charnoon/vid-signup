@@ -8,4 +8,3 @@ export const LANDING_DISCLAIMER =
 
 export const TYPE_INTERVAL_MS = 45;
 export const TYPE_START_DELAY_MS = 400;
-export const FEED_AUTO_ADVANCE_MS = 700;

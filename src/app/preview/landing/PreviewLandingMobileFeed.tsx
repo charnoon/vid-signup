@@ -1,13 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import homeStyles from "@/app/page.module.css";
 import introStyles from "../intro.module.css";
 import { PreviewContent } from "../PreviewContent";
-import type { IntroVideoHandle } from "../IntroVideo";
 import {
-  FEED_AUTO_ADVANCE_MS,
   HERO_COPY,
   LANDING_DISCLAIMER,
   TYPE_INTERVAL_MS,
@@ -18,46 +16,65 @@ import {
 } from "./landing-copy";
 import styles from "./preview-landing-mobile.module.css";
 
-type HeroPhase = "copy" | "video";
-
-function scrollFeedToSlide(
-  feed: HTMLElement,
-  slide: HTMLElement,
-  behavior: ScrollBehavior = "smooth",
-) {
-  feed.scrollTo({ top: slide.offsetTop, behavior });
-}
-
 export function PreviewLandingMobileFeed() {
   const [heroTypedText, setHeroTypedText] = useState("");
-  const [heroPhase, setHeroPhase] = useState<HeroPhase>("copy");
   const [visionTypedText, setVisionTypedText] = useState("");
   const feedRef = useRef<HTMLElement>(null);
   const heroSlideRef = useRef<HTMLElement>(null);
   const visionSlideRef = useRef<HTMLElement>(null);
-  const videoRef = useRef<IntroVideoHandle>(null);
   const heroTypeStartedRef = useRef(false);
   const visionTypeStartedRef = useRef(false);
-  const heroPhaseRef = useRef<HeroPhase>("copy");
 
-  const tryStartVideo = useCallback(() => {
-    if (heroPhaseRef.current === "video") {
-      videoRef.current?.startFeedPlayback();
-    }
-  }, []);
-
-  const beginVideoPhase = useCallback(() => {
-    heroPhaseRef.current = "video";
-    setHeroPhase("video");
-    tryStartVideo();
-  }, [tryStartVideo]);
-
-  const scrollToVisionSlide = useCallback(() => {
+  useEffect(() => {
     const feed = feedRef.current;
-    const slide = visionSlideRef.current;
-    if (!feed || !slide) return;
+    const slide = heroSlideRef.current;
+    if (!feed || !slide) {
+      return;
+    }
 
-    scrollFeedToSlide(feed, slide);
+    let cancelled = false;
+    const timers: number[] = [];
+
+    const wait = (ms: number) =>
+      new Promise<void>((resolve) => {
+        const timer = window.setTimeout(resolve, ms);
+        timers.push(timer);
+      });
+
+    const runHeroTypewriter = async () => {
+      if (heroTypeStartedRef.current || cancelled) {
+        return;
+      }
+      heroTypeStartedRef.current = true;
+
+      await wait(TYPE_START_DELAY_MS);
+      if (cancelled) return;
+
+      for (let index = 1; index <= HERO_COPY.length; index += 1) {
+        if (cancelled) return;
+        setHeroTypedText(HERO_COPY.slice(0, index));
+        await wait(TYPE_INTERVAL_MS);
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting && entry.intersectionRatio >= 0.5) {
+          void runHeroTypewriter();
+        }
+      },
+      { root: feed, threshold: [0, 0.5, 1] },
+    );
+
+    observer.observe(slide);
+
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+      for (const timer of timers) {
+        window.clearTimeout(timer);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -112,47 +129,6 @@ export function PreviewLandingMobileFeed() {
     };
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    const timers: number[] = [];
-
-    const wait = (ms: number) =>
-      new Promise<void>((resolve) => {
-        const timer = window.setTimeout(resolve, ms);
-        timers.push(timer);
-      });
-
-    const runHeroTypewriter = async () => {
-      if (heroTypeStartedRef.current || cancelled) {
-        return;
-      }
-      heroTypeStartedRef.current = true;
-
-      await wait(TYPE_START_DELAY_MS);
-      if (cancelled) return;
-
-      for (let index = 1; index <= HERO_COPY.length; index += 1) {
-        if (cancelled) return;
-        setHeroTypedText(HERO_COPY.slice(0, index));
-        await wait(TYPE_INTERVAL_MS);
-      }
-
-      await wait(FEED_AUTO_ADVANCE_MS);
-      if (cancelled) return;
-
-      beginVideoPhase();
-    };
-
-    void runHeroTypewriter();
-
-    return () => {
-      cancelled = true;
-      for (const timer of timers) {
-        window.clearTimeout(timer);
-      }
-    };
-  }, [beginVideoPhase]);
-
   const visionLeadDisplayed = visionTypedText.slice(
     0,
     Math.min(visionTypedText.length, VISION_LEAD_COPY.length),
@@ -171,7 +147,9 @@ export function PreviewLandingMobileFeed() {
               Vid<span className={homeStyles.blinkingDot}>.</span>
             </span>
           </a>
-          <p className={introStyles.previewTagline}>Private Preview</p>
+          <p className={`${introStyles.previewTagline} ${styles.mobileDisplayText}`}>
+            Private Preview
+          </p>
         </div>
       </div>
 
@@ -179,30 +157,20 @@ export function PreviewLandingMobileFeed() {
         <section
           ref={heroSlideRef}
           className={`${styles.feedSlide} ${styles.feedSlideHero}`}
-          aria-label="Platform introduction and preview video"
+          aria-label="Platform introduction"
         >
-          <div
-            className={`${styles.feedSlideVideoLayer} ${heroPhase === "video" ? styles.feedSlideVideoLayerVisible : ""}`}
-            aria-hidden={heroPhase !== "video"}
-          >
-            <PreviewContent
-              className={styles.feedVideoContent}
-              videoLoop={false}
-              videoRef={videoRef}
-              onVideoEnded={scrollToVisionSlide}
-            />
+          <div className={styles.feedSlideInner}>
+            <p className={styles.feedCopy} aria-live="polite">
+              {heroTypedText}
+            </p>
           </div>
+        </section>
 
-          <div
-            className={`${styles.feedSlideCopyLayer} ${heroPhase === "video" ? styles.feedSlideCopyLayerHidden : ""}`}
-            aria-hidden={heroPhase === "video"}
-          >
-            <div className={styles.feedSlideInner}>
-              <p className={styles.feedCopy} aria-live="polite">
-                {heroTypedText}
-              </p>
-            </div>
-          </div>
+        <section
+          className={`${styles.feedSlide} ${styles.feedSlideVideo}`}
+          aria-label="Preview video"
+        >
+          <PreviewContent className={styles.feedVideoContent} />
         </section>
 
         <section
@@ -232,7 +200,7 @@ export function PreviewLandingMobileFeed() {
             </p>
           </div>
 
-          <p className={styles.feedDisclaimer} role="note">
+          <p className={`${styles.feedDisclaimer} ${styles.mobileDisplayText}`} role="note">
             {LANDING_DISCLAIMER}
           </p>
         </section>
