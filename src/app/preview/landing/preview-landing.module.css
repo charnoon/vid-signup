@@ -296,6 +296,12 @@
   background: rgba(255, 255, 255, 0.8);
 }
 
+@media (max-width: 759px) {
+  .feedTimeline {
+    right: calc(12px + env(safe-area-inset-right, 0px));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .feed {
     scroll-snap-type: none;

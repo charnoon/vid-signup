@@ -1,5 +1,7 @@
 import { useEffect, type RefObject } from "react";
 
+import { isFeedSlideMostlyVisible } from "./feed-scroll";
+
 export function useBackgroundVideoOnVisible(
   scrollRootRef: RefObject<HTMLElement | null>,
   slideRef: RefObject<HTMLElement | null>,
@@ -15,24 +17,31 @@ export function useBackgroundVideoOnVisible(
 
     const tryPlay = () => {
       video.muted = true;
+      markVideoInline(video);
       void video.play().catch(() => {});
     };
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          tryPlay();
-        } else {
-          video.pause();
-        }
-      },
-      { root: scrollRoot, threshold: [0, 0.1, 0.25, 0.5, 1] },
-    );
+    const sync = () => {
+      if (isFeedSlideMostlyVisible(slide, scrollRoot, 0.25)) {
+        tryPlay();
+      } else {
+        video.pause();
+      }
+    };
 
-    observer.observe(slide);
+    sync();
+    scrollRoot.addEventListener("scroll", sync, { passive: true });
+    window.addEventListener("resize", sync);
 
     return () => {
-      observer.disconnect();
+      scrollRoot.removeEventListener("scroll", sync);
+      window.removeEventListener("resize", sync);
     };
   }, [scrollRootRef, slideRef, videoRef]);
+}
+
+function markVideoInline(video: HTMLVideoElement) {
+  video.playsInline = true;
+  video.setAttribute("playsinline", "");
+  video.setAttribute("webkit-playsinline", "true");
 }
