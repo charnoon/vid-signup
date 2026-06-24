@@ -13,7 +13,11 @@ function isMobileUi() {
   return window.matchMedia("(max-width: 768px)").matches;
 }
 
-export function PreviewDisclaimerLink() {
+type PreviewDisclaimerLinkProps = {
+  dockClassName?: string;
+};
+
+export function PreviewDisclaimerLink({ dockClassName }: PreviewDisclaimerLinkProps = {}) {
   const [open, setOpen] = useState(false);
   const [mobileUi, setMobileUi] = useState(false);
 
@@ -64,7 +68,7 @@ export function PreviewDisclaimerLink() {
           </div>
         </>
       ) : null}
-      <div className={styles.disclaimerDock}>
+      <div className={`${styles.disclaimerDock} ${dockClassName ?? ""}`.trim()}>
         <button
           type="button"
           className={`${styles.disclaimerLink} ${open && mobileUi ? styles.disclaimerLinkOpen : ""}`}

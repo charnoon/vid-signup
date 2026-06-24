@@ -21,6 +21,9 @@ export function SignupForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (state === "loading") {
+      return;
+    }
     const parsed = signupSchema.safeParse({
       email,
       marketing_consent: marketingConsent,
@@ -50,20 +53,19 @@ export function SignupForm() {
       });
 
       const data = (await response.json()) as SignupResponse;
-
       if (!response.ok || !data.success) {
         setState("error");
-        setMessage(data.success ? "Request failed" : data.error);
+        setMessage("Something went wrong. Please try again.");
         return;
       }
 
       setState("success");
-      setMessage("Success");
+      setMessage("Thanks for signing up to Vid.");
       setEmail("");
       setMarketingConsent(false);
     } catch {
       setState("error");
-      setMessage("Network error. Please try again.");
+      setMessage("Something went wrong. Please try again.");
     }
   }
 

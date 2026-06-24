@@ -1,15 +1,7 @@
-@font-face {
-  font-family: "TemporaryDisplay-Bold";
-  src: url("/assets/fonts/TemporaryDisplay-Bold.otf") format("opentype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --vid-display: "TemporaryDisplay-Bold", sans-serif;
+  --vid-display-weight: 700;
 }
 
 @media (prefers-color-scheme: dark) {

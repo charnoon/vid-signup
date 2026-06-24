@@ -1,43 +1,66 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { FormEvent, useRef, useState } from "react";
 
 import styles from "./intro.module.css";
 
-export function IntroAccessGate() {
-  const router = useRouter();
+type IntroAccessGateProps = {
+  onEnterPress?: () => void;
+  onAccessGranted?: () => void;
+  onAccessDenied?: () => void;
+};
+
+export function IntroAccessGate({
+  onEnterPress,
+  onAccessGranted,
+  onAccessDenied,
+}: IntroAccessGateProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const playTriggeredRef = useRef(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function triggerPlayFromGesture() {
+    if (playTriggeredRef.current || isSubmitting || password.length === 0) return;
+
+    playTriggeredRef.current = true;
+    onEnterPress?.();
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (isSubmitting) return;
+    if (isSubmitting || password.length === 0) return;
+
+    triggerPlayFromGesture();
 
     setIsSubmitting(true);
     setError(null);
 
-    try {
-      const response = await fetch("/api/preview/access", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
-      });
+    void (async () => {
+      try {
+        const response = await fetch("/api/preview/access", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password }),
+        });
 
-      const data = (await response.json()) as { ok?: boolean; error?: string };
+        const data = (await response.json()) as { ok?: boolean; error?: string };
 
-      if (!response.ok || !data.ok) {
-        setError(data.error ?? "Incorrect password.");
-        return;
+        if (!response.ok || !data.ok) {
+          onAccessDenied?.();
+          setError(data.error ?? "Incorrect password.");
+          return;
+        }
+
+        onAccessGranted?.();
+      } catch {
+        onAccessDenied?.();
+        setError("Unable to verify password right now.");
+      } finally {
+        setIsSubmitting(false);
+        playTriggeredRef.current = false;
       }
-
-      router.refresh();
-    } catch {
-      setError("Unable to verify password right now.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    })();
   }
 
   return (
@@ -57,6 +80,11 @@ export function IntroAccessGate() {
             autoFocus
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
+
+              triggerPlayFromGesture();
+            }}
             disabled={isSubmitting}
             data-1p-ignore
             data-lpignore="true"
@@ -65,6 +93,11 @@ export function IntroAccessGate() {
             type="submit"
             className={styles.accessSubmit}
             disabled={isSubmitting || password.length === 0}
+            onPointerDown={(event) => {
+              if (event.pointerType === "mouse" && event.button !== 0) return;
+
+              triggerPlayFromGesture();
+            }}
           >
             <span className={styles.accessSubmitLabel}>
               {isSubmitting ? "Checking" : "Enter"}

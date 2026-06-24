@@ -1,47 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { getSupabaseAdmin } from "@/lib/supabase";
+import { appendSignupRow } from "@/lib/google-sheets";
 import { signupSchema, type SignupResponse } from "@/lib/validation";
-
-/** User-visible hint derived from PostgREST / Postgres errors (no secrets). */
-function signupInsertErrorMessage(error: {
-  code?: string;
-  message?: string;
-}): string {
-  const m = (error.message ?? "").toLowerCase();
-  const code = error.code ?? "";
-
-  if (
-    m.includes("row-level security") ||
-    code === "42501" ||
-    m.includes("permission denied")
-  ) {
-    return "Signup blocked by database permissions. On Vercel, set SUPABASE_SERVICE_ROLE_KEY to your Supabase secret key (sb_secret_…) or legacy service_role JWT — not the publishable key — then redeploy.";
-  }
-  if (
-    (m.includes("does not exist") || m.includes("not found")) &&
-    m.includes("waitlist")
-  ) {
-    return "The waitlist table was not found. In Supabase SQL Editor, run the full supabase/waitlist.sql from this repo.";
-  }
-  if (m.includes("marketing_consent") && m.includes("column")) {
-    return "Database is missing the marketing_consent column. In Supabase SQL Editor, run supabase/waitlist.sql.";
-  }
-  if (
-    m.includes("invalid api key") ||
-    (m.includes("jwt") && m.includes("invalid"))
-  ) {
-    return "Invalid Supabase API key on the server. Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY where the app is hosted.";
-  }
-  if (
-    m.includes("fetch failed") ||
-    m.includes("enotfound") ||
-    m.includes("econnrefused")
-  ) {
-    return "Cannot reach Supabase. Check SUPABASE_URL matches an active project (Supabase → Project Settings → API), update env on your host, then redeploy.";
-  }
-  return "Unable to save signup right now";
-}
 
 type RateLimitEntry = {
   count: number;
@@ -82,7 +42,7 @@ export async function POST(request: Request) {
   const ip = getRequestIp(request);
   if (isRateLimited(ip)) {
     return NextResponse.json<SignupResponse>(
-      { success: false, error: "Too many requests. Please try again soon." },
+      { success: false, error: "Something went wrong. Please try again." },
       { status: 429 },
     );
   }
@@ -99,60 +59,35 @@ export async function POST(request: Request) {
 
   const parsed = signupSchema.safeParse(payload);
   if (!parsed.success) {
-    return NextResponse.json<SignupResponse>(
-      { success: false, error: parsed.error.issues[0]?.message || "Invalid input" },
-      { status: 400 },
-    );
-  }
-
-  const { email, marketing_consent } = parsed.data;
-  const normalizedEmail = email.trim().toLowerCase();
-
-  let supabaseAdmin;
-  try {
-    supabaseAdmin = getSupabaseAdmin();
-  } catch (err) {
-    console.error("[api/signup] Missing or invalid Supabase env", err);
+    const { fieldErrors } = parsed.error.flatten();
     return NextResponse.json<SignupResponse>(
       {
         success: false,
         error:
-          "Server is missing Supabase configuration. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY on the host (e.g. Vercel), then redeploy.",
+          fieldErrors.email?.[0] ??
+          fieldErrors.marketing_consent?.[0] ??
+          "Invalid input.",
       },
-      { status: 500 },
+      { status: 400 },
     );
   }
 
-  const { error } = await supabaseAdmin.from("waitlist").insert({
-    first_name: "",
-    last_name: "",
-    email: normalizedEmail,
-    marketing_consent: marketing_consent ?? false,
-  });
-
-  if (error) {
-    if (error.code === "23505") {
-      return NextResponse.json<SignupResponse>(
-        { success: true, message: "Already signed up" },
-        { status: 200 },
-      );
-    }
-
-    console.error("[api/signup] Supabase insert failed", {
-      code: error.code,
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
+  try {
+    await appendSignupRow({
+      email: parsed.data.email,
+      source: "vid-signup-page",
+      createdAt: new Date().toISOString(),
     });
-
+  } catch (error) {
+    console.error("[api/signup] Google Sheets append failed", error);
     return NextResponse.json<SignupResponse>(
-      { success: false, error: signupInsertErrorMessage(error) },
+      { success: false, error: "Something went wrong. Please try again." },
       { status: 500 },
     );
   }
 
-  return NextResponse.json<SignupResponse>(
-    { success: true, message: "You're on the list" },
-    { status: 200 },
-  );
+  return NextResponse.json<SignupResponse>({
+    success: true,
+    message: "Thanks for signing up to Vid.",
+  });
 }

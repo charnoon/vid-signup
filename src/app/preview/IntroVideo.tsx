@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { type ReactNode, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 
 import {
   getIntroVideoSrc,
@@ -15,6 +15,11 @@ const PLAY_RETRY_MS = 400;
 const CONTROLS_IDLE_MS = 3_000;
 
 type IntroPhase = "loading" | "playing";
+
+export type IntroVideoHandle = {
+  startPlaybackFromGesture: () => void;
+  pauseFromAccessDenied: () => void;
+};
 
 function OverlayStatus({ children }: { children: ReactNode }) {
   return <div className={styles.overlayStatus}>{children}</div>;
@@ -168,7 +173,7 @@ function markVideoInline(video: HTMLVideoElement) {
   video.setAttribute("webkit-playsinline", "true");
 }
 
-export function IntroVideo() {
+export const IntroVideo = forwardRef<IntroVideoHandle>(function IntroVideo(_props, ref) {
   const stageRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const overlayRef = useRef<HTMLButtonElement>(null);
@@ -309,6 +314,28 @@ export function IntroVideo() {
       });
     });
   };
+
+  useImperativeHandle(ref, () => ({
+    startPlaybackFromGesture: () => {
+      startPlaybackFromGestureRef.current();
+    },
+    pauseFromAccessDenied: () => {
+      const video = videoRef.current;
+      if (video) {
+        video.pause();
+        video.muted = true;
+      }
+
+      hasStartedPlaybackRef.current = false;
+      shouldEnterMobileFullscreenRef.current = false;
+      unlockMutedOnFirstPlayRef.current = false;
+      setPlayRequested(false);
+      setShowPlayIcon(true);
+      setPhase("loading");
+      setIsPlaying(false);
+      setIsRebuffering(false);
+    },
+  }));
 
   useEffect(() => {
     const video = videoRef.current;
@@ -793,4 +820,4 @@ export function IntroVideo() {
       ) : null}
     </div>
   );
-}
+});

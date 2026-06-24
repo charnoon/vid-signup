@@ -1,19 +1,13 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 
-import { IntroAccessGate } from "./IntroAccessGate";
-import { IntroVideo } from "./IntroVideo";
+import { PreviewContent } from "./PreviewContent";
 import { PreviewDisclaimerLink } from "./PreviewDisclaimerLink";
 import {
   INTRO_VIDEO_DESKTOP_SRC,
   INTRO_VIDEO_MOBILE_SRC,
 } from "./intro-stream";
 import { VID_LOGO_HEIGHT, VID_LOGO_SRC, VID_LOGO_WIDTH } from "@/lib/logo";
-import {
-  INTRO_ACCESS_COOKIE,
-  isIntroAccessConfigured,
-  verifyIntroAccessToken,
-} from "@/lib/intro-access";
+import { isIntroAccessConfigured } from "@/lib/intro-access";
 import logoStyles from "@/styles/logo.module.css";
 import styles from "./intro.module.css";
 
@@ -26,31 +20,25 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function IntroPage() {
-  const cookieStore = await cookies();
-  const hasAccess =
-    !isIntroAccessConfigured() ||
-    verifyIntroAccessToken(cookieStore.get(INTRO_ACCESS_COOKIE)?.value);
+  // Temporary: show the password gate on every refresh when access is configured.
+  const initialHasAccess = !isIntroAccessConfigured();
 
   return (
     <main className={styles.page}>
-      {hasAccess ? (
-        <>
-          <link
-            rel="preload"
-            as="video"
-            href={INTRO_VIDEO_DESKTOP_SRC}
-            type="video/mp4"
-            media="(min-width: 769px)"
-          />
-          <link
-            rel="preload"
-            as="video"
-            href={INTRO_VIDEO_MOBILE_SRC}
-            type="video/mp4"
-            media="(max-width: 768px)"
-          />
-        </>
-      ) : null}
+      <link
+        rel="preload"
+        as="video"
+        href={INTRO_VIDEO_DESKTOP_SRC}
+        type="video/mp4"
+        media="(min-width: 769px)"
+      />
+      <link
+        rel="preload"
+        as="video"
+        href={INTRO_VIDEO_MOBILE_SRC}
+        type="video/mp4"
+        media="(max-width: 768px)"
+      />
       <div className={styles.topBar}>
         <div className={styles.brandRow}>
           <a className={`${logoStyles.link} ${styles.logo}`} href="https://vid.global">
@@ -69,7 +57,7 @@ export default async function IntroPage() {
       </div>
       <PreviewDisclaimerLink />
       <div className={styles.content}>
-        {hasAccess ? <IntroVideo /> : <IntroAccessGate />}
+        <PreviewContent initialHasAccess={initialHasAccess} />
       </div>
     </main>
   );

@@ -118,7 +118,7 @@ export function HomePageClient({ headlineText, ctaText }: HomeCopy) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitSucceeded) {
+    if (submitSucceeded || isSubmitting) {
       return;
     }
     const parsed = signupSchema.safeParse({
@@ -147,7 +147,7 @@ export function HomePageClient({ headlineText, ctaText }: HomeCopy) {
 
       const data = (await response.json()) as SignupResponse;
       if (!response.ok || !data.success) {
-        setFormError(data.success ? "Signup failed." : data.error);
+        setFormError("Something went wrong. Please try again.");
         return;
       }
 
@@ -155,7 +155,7 @@ export function HomePageClient({ headlineText, ctaText }: HomeCopy) {
       setEmail("");
       setMarketingConsent(false);
     } catch {
-      setFormError("Network error. Please try again.");
+      setFormError("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -324,7 +324,9 @@ export function HomePageClient({ headlineText, ctaText }: HomeCopy) {
                               }
                               aria-live="polite"
                             >
-                              {submitSucceeded ? "Success" : formError}
+                              {submitSucceeded
+                                ? "Thanks for signing up to Vid."
+                                : formError}
                             </div>
                           ) : null}
                         </div>

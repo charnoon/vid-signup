@@ -1,4 +1,4 @@
-/* Aligned with signup sheet: TemporaryDisplay-Bold, light grey field, editorial uppercase */
+/* Aligned with signup sheet: Temporary Display, light grey field, editorial uppercase */
 
 .legal {
   flex: 1;
@@ -15,7 +15,7 @@
   color: #111;
   font-family: var(--vid-display);
   font-size: 12pt;
-  font-weight: normal;
+  font-weight: var(--vid-display-weight);
   font-synthesis: none;
   text-transform: uppercase;
   letter-spacing: calc(2 / 100 * 1em);
@@ -43,7 +43,7 @@
   margin: 0 0 14px;
   font-family: inherit;
   font-size: inherit;
-  font-weight: normal;
+  font-weight: var(--vid-display-weight);
   letter-spacing: inherit;
   line-height: 1.2;
 }
@@ -60,7 +60,7 @@
   margin: 26px 0 10px;
   font-family: inherit;
   font-size: 11px;
-  font-weight: normal;
+  font-weight: var(--vid-display-weight);
   letter-spacing: calc(2 / 100 * 1em);
   line-height: 1.35;
   color: #111;
@@ -74,7 +74,7 @@
   margin: 0 0 12px;
   font-family: inherit;
   font-size: 11px;
-  font-weight: normal;
+  font-weight: var(--vid-display-weight);
   line-height: 1.45;
   letter-spacing: calc(0.4 / 100 * 1em);
   text-transform: uppercase;
@@ -86,7 +86,7 @@
   padding-left: 1.1rem;
   font-family: inherit;
   font-size: 11px;
-  font-weight: normal;
+  font-weight: var(--vid-display-weight);
   line-height: 1.45;
   letter-spacing: calc(0.4 / 100 * 1em);
   color: rgba(0, 0, 0, 0.55);
@@ -101,7 +101,7 @@
 }
 
 .article strong {
-  font-weight: normal;
+  font-weight: var(--vid-display-weight);
   color: #111;
 }
 
@@ -127,7 +127,7 @@
   border-radius: 0;
   background: rgba(0, 0, 0, 0.06);
   font-style: normal;
-  font-weight: normal;
+  font-weight: var(--vid-display-weight);
   white-space: nowrap;
   color: rgba(0, 0, 0, 0.55);
 }
@@ -140,7 +140,7 @@
   column-gap: 3ch;
   row-gap: 0.35em;
   font-size: 11px;
-  font-weight: normal;
+  font-weight: var(--vid-display-weight);
   letter-spacing: calc(0.4 / 100 * 1em);
   color: rgba(17, 17, 17, 0.48);
 }
@@ -159,7 +159,7 @@
   padding-top: 24px;
   border-top: 1px solid rgba(0, 0, 0, 0.12);
   font-size: 11px;
-  font-weight: normal;
+  font-weight: var(--vid-display-weight);
   line-height: 1.35;
   letter-spacing: calc(0.4 / 100 * 1em);
   color: rgba(17, 17, 17, 0.48);
