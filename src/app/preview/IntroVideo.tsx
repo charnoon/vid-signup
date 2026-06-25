@@ -365,40 +365,7 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
       }
     };
 
-    const tryUnmutedAutoplay = () => {
-      if (!isMediaReady(video)) {
-        return false;
-      }
-
-      const now = Date.now();
-      if (now - lastPlayAttemptRef.current < PLAY_RETRY_MS) {
-        return true;
-      }
-      lastPlayAttemptRef.current = now;
-
-      markVideoInline(video);
-      shouldEnterMobileFullscreenRef.current = false;
-      feedAutoplayPendingRef.current = false;
-      video.muted = false;
-      setIsMuted(false);
-      unlockMutedOnFirstPlayRef.current = false;
-      video.volume = 1;
-
-      const playPromise = video.play();
-      if (!playPromise) {
-        showPlayFallback();
-        return true;
-      }
-
-      playPromise.catch(() => {
-        video.pause();
-        showPlayFallback();
-      });
-
-      return true;
-    };
-
-    const beginFeedPlayback = () => {
+    const attemptFeedAutoplay = () => {
       if (!isMediaReady(video)) {
         return false;
       }
@@ -408,8 +375,45 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
         return true;
       }
 
-      return tryUnmutedAutoplay();
+      const now = Date.now();
+      if (now - lastPlayAttemptRef.current < PLAY_RETRY_MS) {
+        return false;
+      }
+      lastPlayAttemptRef.current = now;
+
+      markVideoInline(video);
+      shouldEnterMobileFullscreenRef.current = false;
+      feedAutoplayPendingRef.current = false;
+      video.volume = 1;
+
+      void (async () => {
+        video.muted = false;
+        setIsMuted(false);
+        unlockMutedOnFirstPlayRef.current = false;
+
+        try {
+          await video.play();
+          return;
+        } catch {
+          video.pause();
+        }
+
+        video.muted = true;
+        setIsMuted(true);
+
+        try {
+          await video.play();
+          return;
+        } catch {
+          video.pause();
+          showPlayFallback();
+        }
+      })();
+
+      return true;
     };
+
+    const beginFeedPlayback = () => attemptFeedAutoplay();
 
     if (beginFeedPlayback()) {
       return;

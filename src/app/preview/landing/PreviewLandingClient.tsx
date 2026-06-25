@@ -120,7 +120,6 @@ export function PreviewLandingClient() {
     const slides = [heroSlide, videoSlide, visionSlide];
     let cancelled = false;
     const timers: number[] = [];
-    let rafId = 0;
 
     const wait = (ms: number) =>
       new Promise<void>((resolve) => {
@@ -134,6 +133,21 @@ export function PreviewLandingClient() {
         top: videoSlide.offsetTop,
         behavior: prefersReducedMotion ? "auto" : "smooth",
       });
+    };
+
+    const tryStartVideoFeed = () => {
+      const activeIndex = getMostVisibleFeedSlideIndex(slides, feed);
+      const activeRatio = getFeedSlideVisibilityRatio(slides[activeIndex], feed);
+
+      if (
+        activeIndex === 1 &&
+        activeRatio >= ACTIVE_SLIDE_MIN_RATIO &&
+        !videoPlaybackStartedRef.current &&
+        introVideoRef.current
+      ) {
+        videoPlaybackStartedRef.current = true;
+        introVideoRef.current.startFeedPlayback();
+      }
     };
 
     const runHeroTypewriter = async () => {
@@ -181,6 +195,8 @@ export function PreviewLandingClient() {
     };
 
     const sync = () => {
+      tryStartVideoFeed();
+
       const activeIndex = getMostVisibleFeedSlideIndex(slides, feed);
       const activeRatio = getFeedSlideVisibilityRatio(slides[activeIndex], feed);
 
@@ -195,44 +211,24 @@ export function PreviewLandingClient() {
         void runHeroTypewriter();
       }
 
-      if (activeIndex === 1 && !videoPlaybackStartedRef.current && introVideoRef.current) {
-        videoPlaybackStartedRef.current = true;
-        introVideoRef.current.startFeedPlayback();
-      }
-
       if (activeIndex === 2) {
         void runVisionTypewriter();
       }
     };
 
-    const scheduleSync = () => {
-      if (rafId !== 0) {
-        return;
-      }
+    sync();
 
-      rafId = window.requestAnimationFrame(() => {
-        rafId = 0;
-        sync();
-      });
-    };
-
-    scheduleSync();
-    window.requestAnimationFrame(scheduleSync);
-
-    feed.addEventListener("scroll", scheduleSync, { passive: true });
-    feed.addEventListener("touchend", scheduleSync, { passive: true });
-    window.addEventListener("resize", scheduleSync);
-    window.visualViewport?.addEventListener("resize", scheduleSync);
+    feed.addEventListener("scroll", sync, { passive: true });
+    feed.addEventListener("touchend", sync, { passive: true });
+    window.addEventListener("resize", sync);
+    window.visualViewport?.addEventListener("resize", sync);
 
     return () => {
       cancelled = true;
-      if (rafId !== 0) {
-        window.cancelAnimationFrame(rafId);
-      }
-      feed.removeEventListener("scroll", scheduleSync);
-      feed.removeEventListener("touchend", scheduleSync);
-      window.removeEventListener("resize", scheduleSync);
-      window.visualViewport?.removeEventListener("resize", scheduleSync);
+      feed.removeEventListener("scroll", sync);
+      feed.removeEventListener("touchend", sync);
+      window.removeEventListener("resize", sync);
+      window.visualViewport?.removeEventListener("resize", sync);
       for (const timer of timers) {
         window.clearTimeout(timer);
       }
