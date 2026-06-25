@@ -117,8 +117,8 @@
   padding-inline: var(--landing-gutter-left) var(--landing-gutter-right);
   --intro-video-frame-w: 720;
   --intro-video-frame-h: 1500;
-  --intro-video-max-height: 90vh;
-  --intro-video-max-height: 90dvh;
+  --intro-video-max-height: 88vh;
+  --intro-video-max-height: 88dvh;
   --intro-video-max-width: calc(
     100vw - var(--landing-gutter-left) - var(--landing-gutter-right)
   );

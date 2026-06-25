@@ -343,13 +343,19 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
     video.volume = 1;
 
     if (isTouchRef.current) {
-      shouldEnterMobileFullscreenRef.current = !feedPlaybackRef.current;
+      shouldEnterMobileFullscreenRef.current = true;
     }
 
     video.muted = false;
     setIsMuted(false);
 
     const playPromise = video.play();
+
+    if (isTouchRef.current) {
+      requestMobileFullscreen();
+      shouldEnterMobileFullscreenRef.current = false;
+    }
+
     if (!playPromise) return;
 
     playPromise.catch(() => {
@@ -473,11 +479,7 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
 
       syncPlaybackState();
 
-      if (
-        !feedPlaybackRef.current &&
-        shouldEnterMobileFullscreenRef.current &&
-        isTouchRef.current
-      ) {
+      if (shouldEnterMobileFullscreenRef.current && isTouchRef.current) {
         shouldEnterMobileFullscreenRef.current = false;
         requestMobileFullscreen();
       }
@@ -692,6 +694,11 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
     }
 
     resumePlayback();
+
+    if (isTouchRef.current) {
+      requestMobileFullscreen();
+      shouldEnterMobileFullscreenRef.current = false;
+    }
   };
 
   const seekToRatio = (ratio: number) => {
