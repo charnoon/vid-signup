@@ -6,6 +6,6 @@ export type HomeCopy = {
 };
 
 export const DEFAULT_HOME_COPY: HomeCopy = {
-  headlineText: "is a new platform for new music visuals.",
+  headlineText: "A platform for new music visuals.",
   ctaText: "REQUEST EARLY ACCESS",
 };

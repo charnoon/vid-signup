@@ -4,18 +4,23 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 
-import { BouncingLogo } from "@/components/BouncingLogo";
+import landingStyles from "@/app/preview/landing/preview-landing.module.css";
+import {
+  HERO_COPY,
+  LANDING_BACKGROUND_VIDEO_SRC,
+  TYPE_INTERVAL_MS,
+  TYPE_START_DELAY_MS,
+} from "@/app/preview/landing/landing-copy";
+import { useFeedViewportHeight } from "@/app/preview/landing/use-feed-viewport-height";
+import introStyles from "@/app/preview/intro.module.css";
 import styles from "@/app/page.module.css";
-import type { HomeCopy } from "@/lib/home-copy-defaults";
+import { BouncingLogo } from "@/components/BouncingLogo";
 import { signupSchema, type SignupResponse } from "@/lib/validation";
 
-const REVEAL_DELAY_MS = 2000;
-const TYPE_INTERVAL_MS = 45;
+const BRAND_BAR_CTA = "Request Early Access";
 
-export function HomePageClient({ headlineText, ctaText }: HomeCopy) {
+export function HomePageClient() {
   const [typedText, setTypedText] = useState("");
-  const [typedCtaText, setTypedCtaText] = useState("");
-  const [hasIntroCompleted, setHasIntroCompleted] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [marketingConsent, setMarketingConsent] = useState(false);
@@ -23,7 +28,11 @@ export function HomePageClient({ headlineText, ctaText }: HomeCopy) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const emailFieldRef = useRef<HTMLInputElement>(null);
+  const landingRef = useRef<HTMLDivElement>(null);
+  const heroMainRef = useRef<HTMLElement>(null);
   const [portalReady, setPortalReady] = useState(false);
+
+  useFeedViewportHeight(landingRef, heroMainRef);
 
   const canSubmitForm = useMemo(() => {
     const parsed = signupSchema.safeParse({
@@ -75,25 +84,13 @@ export function HomePageClient({ headlineText, ctaText }: HomeCopy) {
         timers.push(timer);
       });
 
-    const typePhrase = async (phrase: string) => {
-      for (let index = 1; index <= phrase.length; index += 1) {
-        if (cancelled) return;
-        setTypedText(phrase.slice(0, index));
-        await wait(TYPE_INTERVAL_MS);
-      }
-    };
-
     const runTypewriter = async () => {
-      await wait(REVEAL_DELAY_MS);
+      await wait(TYPE_START_DELAY_MS);
       if (cancelled) return;
 
-      await typePhrase(headlineText);
-      if (cancelled) return;
-
-      setHasIntroCompleted(true);
-      for (let index = 1; index <= ctaText.length; index += 1) {
+      for (let index = 1; index <= HERO_COPY.length; index += 1) {
         if (cancelled) return;
-        setTypedCtaText(ctaText.slice(0, index));
+        setTypedText(HERO_COPY.slice(0, index));
         await wait(TYPE_INTERVAL_MS);
       }
     };
@@ -106,7 +103,7 @@ export function HomePageClient({ headlineText, ctaText }: HomeCopy) {
         window.clearTimeout(timer);
       }
     };
-  }, [headlineText, ctaText]);
+  }, []);
 
   const showEmailOverlay = submitSucceeded || !!formError;
   const emailOverlayId = submitSucceeded
@@ -115,6 +112,19 @@ export function HomePageClient({ headlineText, ctaText }: HomeCopy) {
   const emailOverlayClass = submitSucceeded
     ? styles.emailSubmitOverlaySuccess
     : styles.emailSubmitOverlayError;
+
+  const closeForm = () => {
+    setIsFormOpen(false);
+    setSubmitSucceeded(false);
+    setFormError(null);
+  };
+
+  const openForm = () => {
+    setFormError(null);
+    setSubmitSucceeded(false);
+    setMarketingConsent(false);
+    setIsFormOpen(true);
+  };
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -162,111 +172,72 @@ export function HomePageClient({ headlineText, ctaText }: HomeCopy) {
   }
 
   return (
-    <main
-      className={
-        isFormOpen ? `${styles.landing} ${styles.landingSheetOpen}` : styles.landing
-      }
-    >
-      <div className={styles.heroBackgroundWrap}>
-        <video
-          className={styles.heroVideo}
-          aria-hidden
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
+    <>
+      <style
+        dangerouslySetInnerHTML={{
+          __html: "html,body{background:#000;color:#fff}",
+        }}
+      />
+      <div
+        ref={landingRef}
+        className={`${landingStyles.landing} ${isFormOpen ? styles.homeSheetOpen : ""}`.trim()}
+      >
+        <div
+          className={`${landingStyles.fixedBrandBar} ${isFormOpen ? styles.homeBrandBarSheetOpen : ""}`.trim()}
         >
-          <source src="/vid-hero-desktop.mp4" type="video/mp4" />
-        </video>
-        <div className={styles.heroVignette} aria-hidden />
-      </div>
-
-      <div className={styles.overlay} />
-
-      <div className={styles.heroRow}>
-        <div className={styles.headlineBlock} aria-hidden={isFormOpen}>
-          <h1 className={styles.headline}>
-            <span>Vid</span>
-            <span className={styles.blinkingDot}>.</span>
-            <span className={styles.headlineAfterVid}>{" "}</span>
-            <span className={styles.typed}>{typedText}</span>
-          </h1>
+          <div className={introStyles.brandRow}>
+            {isFormOpen ? (
+              <button
+                type="button"
+                className={`vid-display-bold ${landingStyles.displayText} ${landingStyles.tagline} ${styles.brandBarButton} ${styles.brandBarButtonClose}`}
+                aria-label="Close form"
+                onClick={closeForm}
+              >
+                ×
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={`vid-display-bold ${landingStyles.displayText} ${landingStyles.tagline} ${styles.brandBarButton}`}
+                onClick={openForm}
+              >
+                {BRAND_BAR_CTA}
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {portalReady && hasIntroCompleted
-        ? createPortal(
+        <main ref={heroMainRef} className={styles.homeHeroMain} aria-label="Vid. introduction">
+          <section
+            className={`${landingStyles.feedSlide} ${landingStyles.feedSlideHero}`}
+            aria-label="Platform introduction"
+          >
+            <div className={landingStyles.slideBackground} aria-hidden>
+              <video
+                className={landingStyles.slideBackgroundVideo}
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="metadata"
+              >
+                <source src={LANDING_BACKGROUND_VIDEO_SRC} type="video/mp4" />
+              </video>
+              <div className={landingStyles.slideBackgroundVignette} />
+              <div className={landingStyles.slideOverlay} />
+            </div>
+
             <div
-              className={
-                isFormOpen
-                  ? `${styles.ctaBlock} ${styles.ctaBlockSheetOpen}`
-                  : styles.ctaBlock
-              }
+              className={`${landingStyles.feedSlideInner} ${isFormOpen ? styles.homeHeroCopyHidden : ""}`.trim()}
+              aria-hidden={isFormOpen}
             >
-              <div className={styles.ctaInner}>
-                {isFormOpen ? (
-                  <button
-                    type="button"
-                    className={`${styles.inlineCta} ${styles.inlineCtaClose}`}
-                    aria-label="Close form"
-                    onClick={() => {
-                      setIsFormOpen(false);
-                      setSubmitSucceeded(false);
-                      setFormError(null);
-                    }}
-                  >
-                    <span className={styles.inlineCtaText}>
-                      <span className={styles.inlineCtaTypeTrack}>
-                        <span className={styles.inlineCtaWidthReserve} aria-hidden>
-                          {ctaText}
-                        </span>
-                        <span
-                          className={`${styles.inlineCtaTyped} ${styles.inlineCtaCloseGlyph}`}
-                          aria-hidden
-                        >
-                          ×
-                        </span>
-                      </span>
-                    </span>
-                    <span
-                      className={`${styles.ctaArrow} ${styles.ctaArrowLayoutHold}`}
-                      aria-hidden
-                    >
-                      →
-                    </span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className={styles.inlineCta}
-                    onClick={() => {
-                      setFormError(null);
-                      setSubmitSucceeded(false);
-                      setMarketingConsent(false);
-                      setIsFormOpen(true);
-                    }}
-                  >
-                    <span className={styles.inlineCtaText}>
-                      <span className={styles.inlineCtaTypeTrack}>
-                        <span className={styles.inlineCtaWidthReserve} aria-hidden>
-                          {ctaText}
-                        </span>
-                        <span className={styles.inlineCtaTyped}>{typedCtaText}</span>
-                      </span>
-                    </span>
-                    {typedCtaText.length === ctaText.length ? (
-                      <span className={styles.ctaArrow} aria-hidden="true">
-                        →
-                      </span>
-                    ) : null}
-                  </button>
-                )}
-              </div>
-            </div>,
-            document.body,
-          )
-        : null}
+              <p className={landingStyles.feedCopy} aria-live="polite">
+                {typedText}
+              </p>
+            </div>
+          </section>
+        </main>
+      </div>
 
       {portalReady && isFormOpen
         ? createPortal(
@@ -410,6 +381,6 @@ export function HomePageClient({ headlineText, ctaText }: HomeCopy) {
             document.body,
           )
         : null}
-    </main>
+    </>
   );
 }

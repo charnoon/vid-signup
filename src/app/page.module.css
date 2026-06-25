@@ -1,3 +1,45 @@
+.homeHeroMain {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+.brandBarButton {
+  pointer-events: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.brandBarButtonClose {
+  font-size: 1.5em;
+  line-height: 1;
+  transform: translateY(-2px);
+}
+
+.homeHeroCopyHidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.homeSheetOpen {
+  pointer-events: none;
+}
+
+.homeBrandBarSheetOpen {
+  z-index: 10001;
+  pointer-events: auto;
+}
+
 .landing {
   position: relative;
   z-index: 2;
@@ -287,11 +329,11 @@
   backdrop-filter: blur(22px) saturate(1.08);
   -webkit-backdrop-filter: blur(22px) saturate(1.08);
   overflow-y: auto;
-  /* Below fixed CTA strip (same 48px band + one line + underline gap) */
-  padding-top: calc(74px + env(safe-area-inset-top, 0px));
-  padding-right: calc(90px + env(safe-area-inset-right, 0px));
+  /* Below fixed brand bar (20px offset + line height) */
+  padding-top: calc(56px + env(safe-area-inset-top, 0px));
+  padding-right: calc(7.5% + env(safe-area-inset-right, 0px));
   padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-  padding-left: calc(90px + env(safe-area-inset-left, 0px));
+  padding-left: calc(7.5% + env(safe-area-inset-left, 0px));
   color: #111;
   font-family: var(--vid-display-bold), "Temporary Display Bold", sans-serif;
   font-size: 12pt;
@@ -951,8 +993,8 @@
   }
 
   .formOverlay {
-    padding-left: calc(48px + env(safe-area-inset-left, 0px));
-    padding-right: calc(48px + env(safe-area-inset-right, 0px));
+    padding-left: calc(7.5% + env(safe-area-inset-left, 0px));
+    padding-right: calc(7.5% + env(safe-area-inset-right, 0px));
   }
 
   .heroRow {
@@ -975,12 +1017,8 @@
 }
 
 @media (orientation: landscape) {
-  .ctaBlock {
-    top: calc(88px + env(safe-area-inset-top, 0px));
-  }
-
   .formOverlay {
-    padding-top: calc(114px + env(safe-area-inset-top, 0px));
+    padding-top: calc(72px + env(safe-area-inset-top, 0px));
     display: flex;
     flex-direction: column;
     align-items: center;

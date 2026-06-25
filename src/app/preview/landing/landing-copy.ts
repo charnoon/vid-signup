@@ -1,6 +1,6 @@
 export const LANDING_BACKGROUND_VIDEO_SRC = "/vid-hero-desktop.mp4";
 
-export const HERO_COPY = "Vid. is a new platform\nfor new music visuals.";
+export const HERO_COPY = "Vid. A platform for new music visuals.";
 export const VISION_LEAD_COPY = "A new vision of music TV\nfor the streaming era.";
 export const VISION_LAUNCH_COPY = "Launching 2026.";
 export const VISION_FULL_TEXT = `${VISION_LEAD_COPY}${VISION_LAUNCH_COPY}`;
