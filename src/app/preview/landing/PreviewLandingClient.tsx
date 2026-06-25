@@ -74,7 +74,7 @@ function SlideBackground({ videoRef }: { videoRef: RefObject<HTMLVideoElement | 
         loop
         muted
         playsInline
-        preload="auto"
+        preload="metadata"
       >
         <source src={LANDING_BACKGROUND_VIDEO_SRC} type="video/mp4" />
       </video>

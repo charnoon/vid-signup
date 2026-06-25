@@ -212,6 +212,8 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
   const feedAutoplayRequestedRef = useRef(false);
   const overlayShowsPlayRef = useRef(false);
   const overlayActivateLockRef = useRef(false);
+  const videoSrcRef = useRef<string | undefined>(undefined);
+  const isMobileFilmRef = useRef(true);
 
   useEffect(() => {
     feedPlaybackRef.current = feedPlayback;
@@ -230,7 +232,12 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
   const [controlsVisible, setControlsVisible] = useState(true);
 
   const [videoSrc, setVideoSrc] = useState<string | undefined>(undefined);
-  const [isMobileFilm, setIsMobileFilm] = useState(() => preferMobileVideo ?? true);
+  const [isMobileFilm, setIsMobileFilm] = useState(true);
+
+  const assignVideoSrc = (src: string | undefined) => {
+    videoSrcRef.current = src;
+    setVideoSrc(src);
+  };
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -242,7 +249,21 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
     isTouchRef.current = touch;
     const mobile = preferMobileVideo ?? shouldUseMobileIntro();
     setIsMobileFilm(mobile);
-    setVideoSrc(getIntroVideoSrc(mobile));
+    isMobileFilmRef.current = mobile;
+
+    if (!feedPlaybackRef.current) {
+      assignVideoSrc(getIntroVideoSrc(mobile));
+      return;
+    }
+
+    if (!videoSrcRef.current) {
+      return;
+    }
+
+    const nextSrc = getIntroVideoSrc(mobile);
+    if (nextSrc !== videoSrcRef.current) {
+      assignVideoSrc(nextSrc);
+    }
   }, [preferMobileVideo]);
 
   const frameDimensions = getIntroVideoFrameDimensions(isMobileFilm);
@@ -343,6 +364,11 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
     if (!video || phaseRef.current !== "loading") return;
 
     feedAutoplayRequestedRef.current = true;
+
+    if (!videoSrcRef.current) {
+      assignVideoSrc(getIntroVideoSrc(isMobileFilmRef.current));
+      return;
+    }
 
     const showPlayButton = () => {
       feedAutoplayPendingRef.current = false;
@@ -824,7 +850,7 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
         height={frameDimensions.height}
         loop={loop}
         playsInline
-        preload="auto"
+        preload={feedPlayback ? "metadata" : "auto"}
         poster=""
         aria-label="Vid. promo film"
       />

@@ -2,7 +2,7 @@ import localFont from "next/font/local";
 
 export const temporaryDisplay = localFont({
   src: "../../public/assets/fonts/TemporaryDisplayGX.ttf",
-  display: "block",
+  display: "swap",
   weight: "100 900",
   variable: "--vid-display",
   adjustFontFallback: false,
@@ -11,7 +11,7 @@ export const temporaryDisplay = localFont({
 
 export const temporaryDisplayBold = localFont({
   src: "../../public/assets/fonts/TemporaryDisplay-Bold.otf",
-  display: "block",
+  display: "swap",
   weight: "700",
   variable: "--vid-display-bold",
   adjustFontFallback: false,
