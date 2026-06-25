@@ -189,6 +189,12 @@ function isSafariBrowser() {
   return /Safari/i.test(ua) && !/Chrome|CriOS|Chromium|Edg|OPR|FxiOS|Android/i.test(ua);
 }
 
+function hasActiveUserGesture() {
+  if (typeof navigator === "undefined") return false;
+
+  return Boolean(navigator.userActivation?.isActive);
+}
+
 function markVideoInline(video: HTMLVideoElement) {
   video.playsInline = true;
   video.setAttribute("playsinline", "");
@@ -218,6 +224,7 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
   const startFeedPlaybackRef = useRef<() => void>(() => {});
   const feedPlaybackRef = useRef(feedPlayback);
   const feedAutoplayPendingRef = useRef(false);
+  const feedAutoplayRequestedRef = useRef(false);
 
   useEffect(() => {
     feedPlaybackRef.current = feedPlayback;
@@ -353,6 +360,8 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
     const video = videoRef.current;
     if (!video || phaseRef.current !== "loading") return;
 
+    feedAutoplayRequestedRef.current = true;
+
     const showPlayFallback = () => {
       feedAutoplayPendingRef.current = false;
       setPlayRequested(false);
@@ -365,6 +374,48 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
       }
     };
 
+    const playMuted = () => {
+      markVideoInline(video);
+      shouldEnterMobileFullscreenRef.current = false;
+      feedAutoplayPendingRef.current = false;
+      video.volume = 1;
+      video.muted = true;
+      setIsMuted(true);
+      unlockMutedOnFirstPlayRef.current = false;
+
+      const playPromise = video.play();
+      if (!playPromise) {
+        showPlayFallback();
+        return;
+      }
+
+      playPromise.catch(() => {
+        video.pause();
+        showPlayFallback();
+      });
+    };
+
+    const playUnmuted = () => {
+      markVideoInline(video);
+      shouldEnterMobileFullscreenRef.current = false;
+      feedAutoplayPendingRef.current = false;
+      video.volume = 1;
+      video.muted = false;
+      setIsMuted(false);
+      unlockMutedOnFirstPlayRef.current = false;
+
+      const playPromise = video.play();
+      if (!playPromise) {
+        playMuted();
+        return;
+      }
+
+      playPromise.catch(() => {
+        video.pause();
+        playMuted();
+      });
+    };
+
     const attemptFeedAutoplay = () => {
       if (!isMediaReady(video)) {
         return false;
@@ -375,40 +426,11 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
         return true;
       }
 
-      const now = Date.now();
-      if (now - lastPlayAttemptRef.current < PLAY_RETRY_MS) {
-        return false;
+      if (hasActiveUserGesture()) {
+        playUnmuted();
+      } else {
+        playMuted();
       }
-      lastPlayAttemptRef.current = now;
-
-      markVideoInline(video);
-      shouldEnterMobileFullscreenRef.current = false;
-      feedAutoplayPendingRef.current = false;
-      video.volume = 1;
-
-      void (async () => {
-        video.muted = false;
-        setIsMuted(false);
-        unlockMutedOnFirstPlayRef.current = false;
-
-        try {
-          await video.play();
-          return;
-        } catch {
-          video.pause();
-        }
-
-        video.muted = true;
-        setIsMuted(true);
-
-        try {
-          await video.play();
-          return;
-        } catch {
-          video.pause();
-          showPlayFallback();
-        }
-      })();
 
       return true;
     };
@@ -501,6 +523,10 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
       } else if (!feedPlaybackRef.current) {
         video.muted = false;
         video.volume = 1;
+      } else if (feedPlaybackRef.current && video.muted && hasActiveUserGesture()) {
+        video.muted = false;
+        video.volume = 1;
+        setIsMuted(false);
       }
 
       syncPlaybackState();
@@ -562,6 +588,10 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
       maxDisplayPercentRef.current = 100;
       setLoadPercent(100);
       setShowPlayIcon(true);
+
+      if (feedPlaybackRef.current && feedAutoplayRequestedRef.current) {
+        startFeedPlaybackRef.current();
+      }
     };
 
     const syncLoadState = () => {

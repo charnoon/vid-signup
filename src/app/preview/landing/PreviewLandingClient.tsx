@@ -101,7 +101,6 @@ export function PreviewLandingClient() {
   const heroAutoAdvancedRef = useRef(false);
   const activeSlideIndexRef = useRef(0);
   const visionTypeStartedRef = useRef(false);
-  const videoPlaybackStartedRef = useRef(false);
 
   useFeedViewportHeight(landingRef, feedRef);
   useBackgroundVideoOnVisible(feedRef, heroSlideRef, heroBackgroundVideoRef);
@@ -133,19 +132,20 @@ export function PreviewLandingClient() {
         top: videoSlide.offsetTop,
         behavior: prefersReducedMotion ? "auto" : "smooth",
       });
+
+      if (prefersReducedMotion) {
+        sync();
+      } else {
+        window.setTimeout(sync, 100);
+        window.setTimeout(sync, 450);
+      }
     };
 
     const tryStartVideoFeed = () => {
       const activeIndex = getMostVisibleFeedSlideIndex(slides, feed);
       const activeRatio = getFeedSlideVisibilityRatio(slides[activeIndex], feed);
 
-      if (
-        activeIndex === 1 &&
-        activeRatio >= ACTIVE_SLIDE_MIN_RATIO &&
-        !videoPlaybackStartedRef.current &&
-        introVideoRef.current
-      ) {
-        videoPlaybackStartedRef.current = true;
+      if (activeIndex === 1 && activeRatio >= ACTIVE_SLIDE_MIN_RATIO && introVideoRef.current) {
         introVideoRef.current.startFeedPlayback();
       }
     };
@@ -220,6 +220,7 @@ export function PreviewLandingClient() {
 
     feed.addEventListener("scroll", sync, { passive: true });
     feed.addEventListener("touchend", sync, { passive: true });
+    feed.addEventListener("scrollend", sync, { passive: true });
     window.addEventListener("resize", sync);
     window.visualViewport?.addEventListener("resize", sync);
 
@@ -227,6 +228,7 @@ export function PreviewLandingClient() {
       cancelled = true;
       feed.removeEventListener("scroll", sync);
       feed.removeEventListener("touchend", sync);
+      feed.removeEventListener("scrollend", sync);
       window.removeEventListener("resize", sync);
       window.visualViewport?.removeEventListener("resize", sync);
       for (const timer of timers) {
