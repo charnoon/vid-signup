@@ -1,11 +1,10 @@
 "use client";
 
-import { type ReactNode, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { type CSSProperties, type ReactNode, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 
 import {
   getIntroVideoSrc,
-  INTRO_VIDEO_HEIGHT,
-  INTRO_VIDEO_WIDTH,
+  getIntroVideoFrameDimensions,
   shouldUseMobileIntro,
 } from "./intro-stream";
 import { temporaryDisplayBoldClassName } from "@/lib/fonts";
@@ -32,7 +31,7 @@ type IntroVideoProps = {
   onEnded?: () => void;
   stageClassName?: string;
   preferMobileVideo?: boolean;
-  /** Inline muted playback in the landing feed — no auto-fullscreen or unmute. */
+  /** Inline playback in the landing feed — always prompts with PLAY. */
   feedPlayback?: boolean;
 };
 
@@ -182,19 +181,6 @@ function isTouchDevice() {
   return window.matchMedia("(hover: none) and (pointer: coarse)").matches;
 }
 
-function isSafariBrowser() {
-  if (typeof navigator === "undefined") return false;
-
-  const ua = navigator.userAgent;
-  return /Safari/i.test(ua) && !/Chrome|CriOS|Chromium|Edg|OPR|FxiOS|Android/i.test(ua);
-}
-
-function hasActiveUserGesture() {
-  if (typeof navigator === "undefined") return false;
-
-  return Boolean(navigator.userActivation?.isActive);
-}
-
 function markVideoInline(video: HTMLVideoElement) {
   video.playsInline = true;
   video.setAttribute("playsinline", "");
@@ -215,7 +201,6 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
   const loadCompleteRef = useRef(false);
   const lastPlayAttemptRef = useRef(0);
   const hasStartedPlaybackRef = useRef(false);
-  const unlockMutedOnFirstPlayRef = useRef(false);
   const shouldEnterMobileFullscreenRef = useRef(false);
   const isScrubbingRef = useRef(false);
   const isTouchRef = useRef(false);
@@ -225,6 +210,8 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
   const feedPlaybackRef = useRef(feedPlayback);
   const feedAutoplayPendingRef = useRef(false);
   const feedAutoplayRequestedRef = useRef(false);
+  const overlayShowsPlayRef = useRef(false);
+  const overlayActivateLockRef = useRef(false);
 
   useEffect(() => {
     feedPlaybackRef.current = feedPlayback;
@@ -243,6 +230,7 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
   const [controlsVisible, setControlsVisible] = useState(true);
 
   const [videoSrc, setVideoSrc] = useState<string | undefined>(undefined);
+  const [isMobileFilm, setIsMobileFilm] = useState(() => preferMobileVideo ?? true);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -252,10 +240,12 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
     const touch = isTouchDevice();
     setIsTouch(touch);
     isTouchRef.current = touch;
-    setVideoSrc(
-      getIntroVideoSrc(preferMobileVideo ?? shouldUseMobileIntro()),
-    );
+    const mobile = preferMobileVideo ?? shouldUseMobileIntro();
+    setIsMobileFilm(mobile);
+    setVideoSrc(getIntroVideoSrc(mobile));
   }, [preferMobileVideo]);
+
+  const frameDimensions = getIntroVideoFrameDimensions(isMobileFilm);
 
   const scheduleControlsHide = useCallback(() => {
     if (!isTouchRef.current) return;
@@ -318,6 +308,8 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
   startPlaybackFromGestureRef.current = () => {
     const video = videoRef.current;
     if (!video || phaseRef.current !== "loading") return;
+    if (!overlayShowsPlayRef.current) return;
+    if (!loadCompleteRef.current && !isMediaReady(video)) return;
 
     const now = Date.now();
     if (now - lastPlayAttemptRef.current < PLAY_RETRY_MS) return;
@@ -331,28 +323,18 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
 
     if (isTouchRef.current) {
       shouldEnterMobileFullscreenRef.current = !feedPlaybackRef.current;
-      video.muted = false;
-      setIsMuted(false);
-      unlockMutedOnFirstPlayRef.current = false;
-    } else {
-      video.muted = false;
-      setIsMuted(false);
-      unlockMutedOnFirstPlayRef.current = false;
     }
+
+    video.muted = false;
+    setIsMuted(false);
 
     const playPromise = video.play();
     if (!playPromise) return;
 
     playPromise.catch(() => {
-      video.muted = true;
-      unlockMutedOnFirstPlayRef.current = true;
-
-      void video.play().catch(() => {
-        setPlayRequested(false);
-        setShowPlayIcon(true);
-        unlockMutedOnFirstPlayRef.current = false;
-        shouldEnterMobileFullscreenRef.current = false;
-      });
+      setPlayRequested(false);
+      setShowPlayIcon(true);
+      shouldEnterMobileFullscreenRef.current = false;
     });
   };
 
@@ -362,7 +344,7 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
 
     feedAutoplayRequestedRef.current = true;
 
-    const showPlayFallback = () => {
+    const showPlayButton = () => {
       feedAutoplayPendingRef.current = false;
       setPlayRequested(false);
       setShowPlayIcon(true);
@@ -374,91 +356,34 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
       }
     };
 
-    const playMuted = () => {
-      markVideoInline(video);
-      shouldEnterMobileFullscreenRef.current = false;
-      feedAutoplayPendingRef.current = false;
-      video.volume = 1;
-      video.muted = true;
-      setIsMuted(true);
-      unlockMutedOnFirstPlayRef.current = false;
-
-      const playPromise = video.play();
-      if (!playPromise) {
-        showPlayFallback();
+    const queueUntilReady = (action: () => void) => {
+      if (isMediaReady(video)) {
+        action();
         return;
       }
 
-      playPromise.catch(() => {
-        video.pause();
-        showPlayFallback();
-      });
-    };
-
-    const playUnmuted = () => {
-      markVideoInline(video);
-      shouldEnterMobileFullscreenRef.current = false;
-      feedAutoplayPendingRef.current = false;
-      video.volume = 1;
-      video.muted = false;
-      setIsMuted(false);
-      unlockMutedOnFirstPlayRef.current = false;
-
-      const playPromise = video.play();
-      if (!playPromise) {
-        playMuted();
+      if (feedAutoplayPendingRef.current) {
         return;
       }
 
-      playPromise.catch(() => {
-        video.pause();
-        playMuted();
-      });
+      feedAutoplayPendingRef.current = true;
+
+      const onReady = () => {
+        if (!isMediaReady(video) || phaseRef.current !== "loading") {
+          return;
+        }
+
+        video.removeEventListener("canplay", onReady);
+        video.removeEventListener("loadeddata", onReady);
+        feedAutoplayPendingRef.current = false;
+        action();
+      };
+
+      video.addEventListener("canplay", onReady);
+      video.addEventListener("loadeddata", onReady);
     };
 
-    const attemptFeedAutoplay = () => {
-      if (!isMediaReady(video)) {
-        return false;
-      }
-
-      if (feedPlaybackRef.current && isSafariBrowser()) {
-        showPlayFallback();
-        return true;
-      }
-
-      if (hasActiveUserGesture()) {
-        playUnmuted();
-      } else {
-        playMuted();
-      }
-
-      return true;
-    };
-
-    const beginFeedPlayback = () => attemptFeedAutoplay();
-
-    if (beginFeedPlayback()) {
-      return;
-    }
-
-    if (feedAutoplayPendingRef.current) {
-      return;
-    }
-
-    feedAutoplayPendingRef.current = true;
-
-    const onReady = () => {
-      if (!isMediaReady(video) || phaseRef.current !== "loading") {
-        return;
-      }
-
-      video.removeEventListener("canplay", onReady);
-      video.removeEventListener("loadeddata", onReady);
-      beginFeedPlayback();
-    };
-
-    video.addEventListener("canplay", onReady);
-    video.addEventListener("loadeddata", onReady);
+    queueUntilReady(showPlayButton);
   };
 
   useImperativeHandle(ref, () => ({
@@ -477,7 +402,6 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
 
       hasStartedPlaybackRef.current = false;
       shouldEnterMobileFullscreenRef.current = false;
-      unlockMutedOnFirstPlayRef.current = false;
       setPlayRequested(false);
       setShowPlayIcon(true);
       setPhase("loading");
@@ -516,17 +440,9 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
       setIsRebuffering(false);
       setShowPlayIcon(false);
 
-      if (unlockMutedOnFirstPlayRef.current) {
+      if (!feedPlaybackRef.current) {
         video.muted = false;
         video.volume = 1;
-        unlockMutedOnFirstPlayRef.current = false;
-      } else if (!feedPlaybackRef.current) {
-        video.muted = false;
-        video.volume = 1;
-      } else if (feedPlaybackRef.current && video.muted && hasActiveUserGesture()) {
-        video.muted = false;
-        video.volume = 1;
-        setIsMuted(false);
       }
 
       syncPlaybackState();
@@ -575,6 +491,8 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
     loadStartedAtRef.current = Date.now();
     maxDisplayPercentRef.current = 0;
     loadCompleteRef.current = false;
+    feedAutoplayPendingRef.current = false;
+    feedAutoplayRequestedRef.current = false;
 
     markVideoInline(video);
     // Muted preload helps Safari/WebKit start buffering before user gesture.
@@ -660,23 +578,6 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
       }
     };
   }, [phase, isTouch, scheduleControlsHide]);
-
-  useEffect(() => {
-    const overlay = overlayRef.current;
-    if (!overlay || phase !== "loading") return;
-
-    const onActivate = () => {
-      startPlaybackFromGestureRef.current();
-    };
-
-    overlay.addEventListener("touchstart", onActivate, { passive: true });
-    overlay.addEventListener("click", onActivate);
-
-    return () => {
-      overlay.removeEventListener("touchstart", onActivate);
-      overlay.removeEventListener("click", onActivate);
-    };
-  }, [phase]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -832,7 +733,6 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
     if (!video) return;
 
     revealControls();
-    unlockMutedOnFirstPlayRef.current = false;
     video.muted = !video.muted;
 
     if (!video.muted) {
@@ -886,11 +786,33 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
 
   const showLoadOverlay = phase === "loading";
   const overlayShowsPlay = showPlayIcon && !playRequested;
+  overlayShowsPlayRef.current = overlayShowsPlay;
+
+  const handleOverlayActivate = (event?: React.SyntheticEvent) => {
+    event?.stopPropagation();
+
+    if (!overlayShowsPlay || overlayActivateLockRef.current) {
+      return;
+    }
+
+    overlayActivateLockRef.current = true;
+    window.setTimeout(() => {
+      overlayActivateLockRef.current = false;
+    }, PLAY_RETRY_MS);
+
+    startPlaybackFromGestureRef.current();
+  };
+
+  const frameStyle = {
+    "--intro-video-frame-w": String(frameDimensions.width),
+    "--intro-video-frame-h": String(frameDimensions.height),
+  } as CSSProperties;
 
   return (
     <div
       ref={stageRef}
       className={`${styles.videoStage} ${stageClassName ?? ""}`.trim()}
+      style={frameStyle}
       onMouseLeave={onStageMouseLeave}
       onPointerDown={onStagePointerDown}
     >
@@ -898,8 +820,8 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
         ref={videoRef}
         className={`${styles.video} ${phase === "loading" ? styles.videoHidden : ""}`}
         src={videoSrc}
-        width={INTRO_VIDEO_WIDTH}
-        height={INTRO_VIDEO_HEIGHT}
+        width={frameDimensions.width}
+        height={frameDimensions.height}
         loop={loop}
         playsInline
         preload="auto"
@@ -916,6 +838,23 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
           className={`${styles.mediaOverlay} ${styles.loadOverlay} ${temporaryDisplayBoldClassName}`}
           style={overlayDisplayFont}
           aria-label={overlayShowsPlay ? "Play video" : `Loading video ${loadPercent}%`}
+          onTouchEnd={(event) => {
+            event.stopPropagation();
+            handleOverlayActivate(event);
+          }}
+          onPointerUp={(event) => {
+            if (event.pointerType === "mouse" && event.button !== 0) {
+              return;
+            }
+
+            event.stopPropagation();
+            handleOverlayActivate(event);
+          }}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            handleOverlayActivate(event);
+          }}
         >
           <OverlayStatus>
             {overlayShowsPlay ? (

@@ -2,7 +2,17 @@ import { previewLandingDesktopMediaQuery, previewLandingMobileMediaQuery } from 
 
 export const INTRO_VIDEO_WIDTH = 1080;
 export const INTRO_VIDEO_HEIGHT = 2250;
+export const INTRO_VIDEO_MOBILE_WIDTH = 720;
+export const INTRO_VIDEO_MOBILE_HEIGHT = 1500;
 export const INTRO_VIDEO_ASPECT_RATIO = INTRO_VIDEO_WIDTH / INTRO_VIDEO_HEIGHT;
+export const INTRO_VIDEO_MOBILE_ASPECT_RATIO =
+  INTRO_VIDEO_MOBILE_WIDTH / INTRO_VIDEO_MOBILE_HEIGHT;
+
+export function getIntroVideoFrameDimensions(preferMobile: boolean) {
+  return preferMobile
+    ? { width: INTRO_VIDEO_MOBILE_WIDTH, height: INTRO_VIDEO_MOBILE_HEIGHT }
+    : { width: INTRO_VIDEO_WIDTH, height: INTRO_VIDEO_HEIGHT };
+}
 
 export const INTRO_VIDEO_DESKTOP_SRC = "/assets/intro/vid-intro-film.mp4";
 export const INTRO_VIDEO_MOBILE_SRC = "/assets/intro/vid-intro-film-mobile.mp4";

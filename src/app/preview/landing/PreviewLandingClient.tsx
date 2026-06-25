@@ -219,6 +219,7 @@ export function PreviewLandingClient() {
     sync();
 
     feed.addEventListener("scroll", sync, { passive: true });
+    feed.addEventListener("touchstart", sync, { passive: true });
     feed.addEventListener("touchend", sync, { passive: true });
     feed.addEventListener("scrollend", sync, { passive: true });
     window.addEventListener("resize", sync);
@@ -227,6 +228,7 @@ export function PreviewLandingClient() {
     return () => {
       cancelled = true;
       feed.removeEventListener("scroll", sync);
+      feed.removeEventListener("touchstart", sync);
       feed.removeEventListener("touchend", sync);
       feed.removeEventListener("scrollend", sync);
       window.removeEventListener("resize", sync);
