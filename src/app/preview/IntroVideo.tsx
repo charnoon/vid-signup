@@ -210,6 +210,7 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
   const startPlaybackFromGestureRef = useRef<() => void>(() => {});
   const startFeedPlaybackRef = useRef<() => void>(() => {});
   const feedPlaybackRef = useRef(feedPlayback);
+  const feedAutoplayPendingRef = useRef(false);
 
   useEffect(() => {
     feedPlaybackRef.current = feedPlayback;
@@ -315,7 +316,7 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
     video.volume = 1;
 
     if (isTouchRef.current) {
-      shouldEnterMobileFullscreenRef.current = true;
+      shouldEnterMobileFullscreenRef.current = !feedPlaybackRef.current;
       video.muted = false;
       setIsMuted(false);
       unlockMutedOnFirstPlayRef.current = false;
@@ -343,53 +344,75 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
 
   startFeedPlaybackRef.current = () => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || phaseRef.current !== "loading") return;
 
-    const now = Date.now();
-    if (now - lastPlayAttemptRef.current < PLAY_RETRY_MS) return;
-    lastPlayAttemptRef.current = now;
+    const showPlayFallback = () => {
+      feedAutoplayPendingRef.current = false;
+      setPlayRequested(false);
+      setShowPlayIcon(true);
+      setLoadPercent(100);
+      maxDisplayPercentRef.current = 100;
 
-    markVideoInline(video);
-    setPlayRequested(true);
-    setShowPlayIcon(false);
-    loadCompleteRef.current = true;
-    maxDisplayPercentRef.current = 100;
-    setLoadPercent(100);
-
-    if (isTouchRef.current) {
-      if (feedPlaybackRef.current) {
-        shouldEnterMobileFullscreenRef.current = false;
-        video.muted = true;
-        setIsMuted(true);
-        unlockMutedOnFirstPlayRef.current = false;
-      } else {
-        shouldEnterMobileFullscreenRef.current = true;
-        video.muted = true;
-        setIsMuted(true);
-        unlockMutedOnFirstPlayRef.current = true;
+      if (!loadCompleteRef.current) {
+        loadCompleteRef.current = true;
       }
-    } else {
+    };
+
+    const tryUnmutedAutoplay = () => {
+      if (!isMediaReady(video)) {
+        return false;
+      }
+
+      const now = Date.now();
+      if (now - lastPlayAttemptRef.current < PLAY_RETRY_MS) {
+        return true;
+      }
+      lastPlayAttemptRef.current = now;
+
+      markVideoInline(video);
+      shouldEnterMobileFullscreenRef.current = false;
+      feedAutoplayPendingRef.current = false;
       video.muted = false;
       setIsMuted(false);
       unlockMutedOnFirstPlayRef.current = false;
+      video.volume = 1;
+
+      const playPromise = video.play();
+      if (!playPromise) {
+        showPlayFallback();
+        return true;
+      }
+
+      playPromise.catch(() => {
+        video.pause();
+        showPlayFallback();
+      });
+
+      return true;
+    };
+
+    if (tryUnmutedAutoplay()) {
+      return;
     }
 
-    video.volume = 1;
+    if (feedAutoplayPendingRef.current) {
+      return;
+    }
 
-    const playPromise = video.play();
-    if (!playPromise) return;
+    feedAutoplayPendingRef.current = true;
 
-    playPromise.catch(() => {
-      video.muted = true;
-      unlockMutedOnFirstPlayRef.current = true;
+    const onReady = () => {
+      if (!isMediaReady(video) || phaseRef.current !== "loading") {
+        return;
+      }
 
-      void video.play().catch(() => {
-        setPlayRequested(false);
-        setShowPlayIcon(true);
-        unlockMutedOnFirstPlayRef.current = false;
-        shouldEnterMobileFullscreenRef.current = false;
-      });
-    });
+      video.removeEventListener("canplay", onReady);
+      video.removeEventListener("loadeddata", onReady);
+      tryUnmutedAutoplay();
+    };
+
+    video.addEventListener("canplay", onReady);
+    video.addEventListener("loadeddata", onReady);
   };
 
   useImperativeHandle(ref, () => ({
@@ -447,14 +470,11 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
       setIsRebuffering(false);
       setShowPlayIcon(false);
 
-      if (feedPlaybackRef.current && isTouchRef.current) {
-        video.muted = true;
-        setIsMuted(true);
-      } else if (unlockMutedOnFirstPlayRef.current) {
+      if (unlockMutedOnFirstPlayRef.current) {
         video.muted = false;
         video.volume = 1;
         unlockMutedOnFirstPlayRef.current = false;
-      } else {
+      } else if (!feedPlaybackRef.current) {
         video.muted = false;
         video.volume = 1;
       }
