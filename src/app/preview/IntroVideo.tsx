@@ -182,6 +182,13 @@ function isTouchDevice() {
   return window.matchMedia("(hover: none) and (pointer: coarse)").matches;
 }
 
+function isSafariBrowser() {
+  if (typeof navigator === "undefined") return false;
+
+  const ua = navigator.userAgent;
+  return /Safari/i.test(ua) && !/Chrome|CriOS|Chromium|Edg|OPR|FxiOS|Android/i.test(ua);
+}
+
 function markVideoInline(video: HTMLVideoElement) {
   video.playsInline = true;
   video.setAttribute("playsinline", "");
@@ -391,7 +398,20 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
       return true;
     };
 
-    if (tryUnmutedAutoplay()) {
+    const beginFeedPlayback = () => {
+      if (!isMediaReady(video)) {
+        return false;
+      }
+
+      if (feedPlaybackRef.current && isSafariBrowser()) {
+        showPlayFallback();
+        return true;
+      }
+
+      return tryUnmutedAutoplay();
+    };
+
+    if (beginFeedPlayback()) {
       return;
     }
 
@@ -408,7 +428,7 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
 
       video.removeEventListener("canplay", onReady);
       video.removeEventListener("loadeddata", onReady);
-      tryUnmutedAutoplay();
+      beginFeedPlayback();
     };
 
     video.addEventListener("canplay", onReady);
