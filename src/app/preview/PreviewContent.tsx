@@ -12,6 +12,7 @@ type PreviewContentProps = {
   onVideoEnded?: () => void;
   videoRef?: RefObject<IntroVideoHandle | null>;
   preferMobileVideo?: boolean;
+  feedPlayback?: boolean;
 };
 
 export function PreviewContent({
@@ -21,6 +22,7 @@ export function PreviewContent({
   onVideoEnded,
   videoRef: externalVideoRef,
   preferMobileVideo,
+  feedPlayback,
 }: PreviewContentProps) {
   const internalVideoRef = useRef<IntroVideoHandle>(null);
   const videoRef = externalVideoRef ?? internalVideoRef;
@@ -33,6 +35,7 @@ export function PreviewContent({
         onEnded={onVideoEnded}
         stageClassName={videoStageClassName}
         preferMobileVideo={preferMobileVideo}
+        feedPlayback={feedPlayback}
       />
     </div>
   );

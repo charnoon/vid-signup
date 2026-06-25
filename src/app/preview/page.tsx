@@ -41,7 +41,7 @@ export default async function IntroPage() {
               Vid<span className={homeStyles.blinkingDot}>.</span>
             </span>
           </a>
-          <p className={styles.previewTagline}>Private Preview</p>
+          <p className={styles.previewTagline}>Preview</p>
         </div>
       </div>
       <PreviewDisclaimerLink />

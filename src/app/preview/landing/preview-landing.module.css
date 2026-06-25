@@ -3,6 +3,11 @@
   inset: 0;
   z-index: 1;
   background: #000;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
   --landing-gutter-left: calc(7.5% + env(safe-area-inset-left, 0px));
   --landing-gutter-right: calc(7.5% + env(safe-area-inset-right, 0px));
   --landing-copy-font-size: 32px;
@@ -10,26 +15,30 @@
   --intro-logo-height: clamp(13.91px, 3.5vw, 18.19px);
   --intro-tagline-gap: 10px;
   --intro-text-size: 16px;
+  --landing-slide-height: 100vh;
   --landing-slide-height: 100lvh;
   --landing-slide-height: 100dvh;
 }
 
 @media (min-width: 769px) {
   .feedVideoContent {
+    --intro-video-max-height: min(84vh, calc(100vh - 96px));
     --intro-video-max-height: min(84dvh, calc(100dvh - 96px));
   }
 }
 
 .feed {
   box-sizing: border-box;
-  height: var(--landing-slide-height);
-  min-height: var(--landing-slide-height);
-  min-height: -webkit-fill-available;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
   background: #000;
 }
 
@@ -37,12 +46,12 @@
   position: relative;
   box-sizing: border-box;
   width: 100%;
-  height: var(--landing-slide-height);
-  min-height: var(--landing-slide-height);
-  min-height: -webkit-fill-available;
+  height: var(--landing-slide-height, 100%);
+  min-height: var(--landing-slide-height, 100%);
+  flex-shrink: 0;
   padding-bottom: env(safe-area-inset-bottom, 0px);
   scroll-snap-align: start;
-  scroll-snap-stop: always;
+  scroll-snap-stop: normal;
   overflow: hidden;
 }
 
@@ -109,6 +118,7 @@
   --intro-video-aspect: 9 / 16;
   --intro-video-frame-w: 9;
   --intro-video-frame-h: 16;
+  --intro-video-max-height: 90vh;
   --intro-video-max-height: 90dvh;
   --intro-video-max-width: calc(
     100vw - var(--landing-gutter-left) - var(--landing-gutter-right)
@@ -225,7 +235,7 @@
   position: absolute;
   left: var(--landing-gutter-left);
   right: calc(12px + env(safe-area-inset-right, 0px));
-  bottom: 16px;
+  bottom: 24px;
   z-index: 3;
   max-width: none;
   margin: 0;

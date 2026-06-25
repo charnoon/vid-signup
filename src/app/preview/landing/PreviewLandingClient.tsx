@@ -1,11 +1,22 @@
 "use client";
 
-import { type RefObject, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  type RefObject,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import homeStyles from "@/app/page.module.css";
 import introStyles from "../intro.module.css";
+import { type IntroVideoHandle } from "../IntroVideo";
 import { previewLandingMobileVideoMediaQuery } from "../breakpoints";
 import { PreviewContent } from "../PreviewContent";
+import {
+  getFeedSlideVisibilityRatio,
+  getMostVisibleFeedSlideIndex,
+} from "./feed-scroll";
 import {
   HERO_COPY,
   HERO_AUTO_ADVANCE_DELAY_MS,
@@ -20,13 +31,21 @@ import {
 } from "./landing-copy";
 import styles from "./preview-landing.module.css";
 import { useBackgroundVideoOnVisible } from "./use-background-video-on-visible";
+import { useFeedViewportHeight } from "./use-feed-viewport-height";
 
 const FEED_SLIDE_COUNT = 3;
+const ACTIVE_SLIDE_MIN_RATIO = 0.35;
 
 function subscribePreferMobileVideo(onStoreChange: () => void) {
   const media = window.matchMedia(previewLandingMobileVideoMediaQuery);
-  media.addEventListener("change", onStoreChange);
-  return () => media.removeEventListener("change", onStoreChange);
+
+  if (typeof media.addEventListener === "function") {
+    media.addEventListener("change", onStoreChange);
+    return () => media.removeEventListener("change", onStoreChange);
+  }
+
+  media.addListener(onStoreChange);
+  return () => media.removeListener(onStoreChange);
 }
 
 function getPreferMobileVideoSnapshot() {
@@ -70,70 +89,52 @@ export function PreviewLandingClient() {
   const [heroTypedText, setHeroTypedText] = useState("");
   const [visionTypedText, setVisionTypedText] = useState("");
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const landingRef = useRef<HTMLDivElement>(null);
   const feedRef = useRef<HTMLElement>(null);
   const heroSlideRef = useRef<HTMLElement>(null);
   const videoSlideRef = useRef<HTMLElement>(null);
   const visionSlideRef = useRef<HTMLElement>(null);
   const heroBackgroundVideoRef = useRef<HTMLVideoElement>(null);
   const visionBackgroundVideoRef = useRef<HTMLVideoElement>(null);
+  const introVideoRef = useRef<IntroVideoHandle>(null);
   const heroTypeStartedRef = useRef(false);
   const heroAutoAdvancedRef = useRef(false);
   const activeSlideIndexRef = useRef(0);
   const visionTypeStartedRef = useRef(false);
+  const videoPlaybackStartedRef = useRef(false);
+
+  useFeedViewportHeight(landingRef, feedRef);
+  useBackgroundVideoOnVisible(feedRef, heroSlideRef, heroBackgroundVideoRef);
+  useBackgroundVideoOnVisible(feedRef, visionSlideRef, visionBackgroundVideoRef);
 
   useEffect(() => {
     const feed = feedRef.current;
-    const slides = [heroSlideRef.current, videoSlideRef.current, visionSlideRef.current].filter(
-      Boolean,
-    ) as HTMLElement[];
+    const heroSlide = heroSlideRef.current;
+    const videoSlide = videoSlideRef.current;
+    const visionSlide = visionSlideRef.current;
 
-    if (!feed || slides.length === 0) {
+    if (!feed || !heroSlide || !videoSlide || !visionSlide) {
       return;
     }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        let bestIndex = -1;
-        let bestRatio = 0;
-
-        for (const entry of entries) {
-          const index = slides.indexOf(entry.target as HTMLElement);
-          if (index >= 0 && entry.isIntersecting && entry.intersectionRatio > bestRatio) {
-            bestIndex = index;
-            bestRatio = entry.intersectionRatio;
-          }
-        }
-
-        if (bestIndex >= 0) {
-          activeSlideIndexRef.current = bestIndex;
-          setActiveSlideIndex(bestIndex);
-        }
-      },
-      { root: feed, threshold: [0, 0.35, 0.5, 0.65, 1] },
-    );
-
-    for (const slide of slides) {
-      observer.observe(slide);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const feed = feedRef.current;
-    const slide = heroSlideRef.current;
-    if (!feed || !slide) {
-      return;
-    }
-
+    const slides = [heroSlide, videoSlide, visionSlide];
     let cancelled = false;
     const timers: number[] = [];
+    let rafId = 0;
 
     const wait = (ms: number) =>
       new Promise<void>((resolve) => {
         const timer = window.setTimeout(resolve, ms);
         timers.push(timer);
       });
+
+    const scrollToVideoSlide = () => {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      feed.scrollTo({
+        top: videoSlide.offsetTop,
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+      });
+    };
 
     const runHeroTypewriter = async () => {
       if (heroTypeStartedRef.current || cancelled) {
@@ -159,58 +160,9 @@ export function PreviewLandingClient() {
         return;
       }
 
-      const feed = feedRef.current;
-      const videoSlide = videoSlideRef.current;
-      if (!feed || !videoSlide) {
-        return;
-      }
-
       heroAutoAdvancedRef.current = true;
-      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      feed.scrollTo({
-        top: videoSlide.offsetTop,
-        behavior: prefersReducedMotion ? "auto" : "smooth",
-      });
+      scrollToVideoSlide();
     };
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting && entry.intersectionRatio >= 0.5) {
-          void runHeroTypewriter();
-        }
-      },
-      { root: feed, threshold: [0, 0.5, 1] },
-    );
-
-    observer.observe(slide);
-
-    return () => {
-      cancelled = true;
-      observer.disconnect();
-      for (const timer of timers) {
-        window.clearTimeout(timer);
-      }
-    };
-  }, []);
-
-  useBackgroundVideoOnVisible(feedRef, heroSlideRef, heroBackgroundVideoRef);
-  useBackgroundVideoOnVisible(feedRef, visionSlideRef, visionBackgroundVideoRef);
-
-  useEffect(() => {
-    const feed = feedRef.current;
-    const slide = visionSlideRef.current;
-    if (!feed || !slide) {
-      return;
-    }
-
-    let cancelled = false;
-    const timers: number[] = [];
-
-    const wait = (ms: number) =>
-      new Promise<void>((resolve) => {
-        const timer = window.setTimeout(resolve, ms);
-        timers.push(timer);
-      });
 
     const runVisionTypewriter = async () => {
       if (visionTypeStartedRef.current || cancelled) {
@@ -228,20 +180,59 @@ export function PreviewLandingClient() {
       }
     };
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting && entry.intersectionRatio >= 0.5) {
-          void runVisionTypewriter();
-        }
-      },
-      { root: feed, threshold: [0, 0.5, 1] },
-    );
+    const sync = () => {
+      const activeIndex = getMostVisibleFeedSlideIndex(slides, feed);
+      const activeRatio = getFeedSlideVisibilityRatio(slides[activeIndex], feed);
 
-    observer.observe(slide);
+      activeSlideIndexRef.current = activeIndex;
+      setActiveSlideIndex(activeIndex);
+
+      if (activeRatio < ACTIVE_SLIDE_MIN_RATIO) {
+        return;
+      }
+
+      if (activeIndex === 0) {
+        void runHeroTypewriter();
+      }
+
+      if (activeIndex === 1 && !videoPlaybackStartedRef.current && introVideoRef.current) {
+        videoPlaybackStartedRef.current = true;
+        introVideoRef.current.startFeedPlayback();
+      }
+
+      if (activeIndex === 2) {
+        void runVisionTypewriter();
+      }
+    };
+
+    const scheduleSync = () => {
+      if (rafId !== 0) {
+        return;
+      }
+
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
+        sync();
+      });
+    };
+
+    scheduleSync();
+    window.requestAnimationFrame(scheduleSync);
+
+    feed.addEventListener("scroll", scheduleSync, { passive: true });
+    feed.addEventListener("touchend", scheduleSync, { passive: true });
+    window.addEventListener("resize", scheduleSync);
+    window.visualViewport?.addEventListener("resize", scheduleSync);
 
     return () => {
       cancelled = true;
-      observer.disconnect();
+      if (rafId !== 0) {
+        window.cancelAnimationFrame(rafId);
+      }
+      feed.removeEventListener("scroll", scheduleSync);
+      feed.removeEventListener("touchend", scheduleSync);
+      window.removeEventListener("resize", scheduleSync);
+      window.visualViewport?.removeEventListener("resize", scheduleSync);
       for (const timer of timers) {
         window.clearTimeout(timer);
       }
@@ -258,7 +249,7 @@ export function PreviewLandingClient() {
       : "";
 
   return (
-    <div className={styles.landing}>
+    <div ref={landingRef} className={styles.landing}>
       <div className={styles.fixedBrandBar}>
         <div className={introStyles.brandRow}>
           <a className={introStyles.brandVidLink} href="https://vid.global">
@@ -267,7 +258,7 @@ export function PreviewLandingClient() {
             </span>
           </a>
           <p className={`vid-display-bold ${styles.displayText} ${styles.tagline}`}>
-            Private Preview
+            Preview
           </p>
         </div>
       </div>
@@ -308,6 +299,8 @@ export function PreviewLandingClient() {
           <PreviewContent
             className={styles.feedVideoContent}
             preferMobileVideo={preferMobileVideo}
+            videoRef={introVideoRef}
+            feedPlayback
           />
         </section>
 

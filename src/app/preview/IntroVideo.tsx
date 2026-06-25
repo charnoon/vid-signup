@@ -32,6 +32,8 @@ type IntroVideoProps = {
   onEnded?: () => void;
   stageClassName?: string;
   preferMobileVideo?: boolean;
+  /** Inline muted playback in the landing feed — no auto-fullscreen or unmute. */
+  feedPlayback?: boolean;
 };
 
 function OverlayStatus({ children }: { children: ReactNode }) {
@@ -187,7 +189,7 @@ function markVideoInline(video: HTMLVideoElement) {
 }
 
 export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function IntroVideo(
-  { loop = true, onEnded, stageClassName, preferMobileVideo },
+  { loop = true, onEnded, stageClassName, preferMobileVideo, feedPlayback = false },
   ref,
 ) {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -207,6 +209,11 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
   const controlsHideTimerRef = useRef<number | null>(null);
   const startPlaybackFromGestureRef = useRef<() => void>(() => {});
   const startFeedPlaybackRef = useRef<() => void>(() => {});
+  const feedPlaybackRef = useRef(feedPlayback);
+
+  useEffect(() => {
+    feedPlaybackRef.current = feedPlayback;
+  }, [feedPlayback]);
 
   const [isTouch, setIsTouch] = useState(false);
   const [phase, setPhase] = useState<IntroPhase>("loading");
@@ -350,10 +357,17 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
     setLoadPercent(100);
 
     if (isTouchRef.current) {
-      shouldEnterMobileFullscreenRef.current = true;
-      video.muted = true;
-      setIsMuted(true);
-      unlockMutedOnFirstPlayRef.current = true;
+      if (feedPlaybackRef.current) {
+        shouldEnterMobileFullscreenRef.current = false;
+        video.muted = true;
+        setIsMuted(true);
+        unlockMutedOnFirstPlayRef.current = false;
+      } else {
+        shouldEnterMobileFullscreenRef.current = true;
+        video.muted = true;
+        setIsMuted(true);
+        unlockMutedOnFirstPlayRef.current = true;
+      }
     } else {
       video.muted = false;
       setIsMuted(false);
@@ -433,7 +447,10 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
       setIsRebuffering(false);
       setShowPlayIcon(false);
 
-      if (unlockMutedOnFirstPlayRef.current) {
+      if (feedPlaybackRef.current && isTouchRef.current) {
+        video.muted = true;
+        setIsMuted(true);
+      } else if (unlockMutedOnFirstPlayRef.current) {
         video.muted = false;
         video.volume = 1;
         unlockMutedOnFirstPlayRef.current = false;
@@ -444,7 +461,11 @@ export const IntroVideo = forwardRef<IntroVideoHandle, IntroVideoProps>(function
 
       syncPlaybackState();
 
-      if (shouldEnterMobileFullscreenRef.current && isTouchRef.current) {
+      if (
+        !feedPlaybackRef.current &&
+        shouldEnterMobileFullscreenRef.current &&
+        isTouchRef.current
+      ) {
         shouldEnterMobileFullscreenRef.current = false;
         requestMobileFullscreen();
       }
